@@ -92,6 +92,20 @@ export type Photostory = {
   createdAt: number;
 };
 
+export type AboutSection = {
+  key: string;
+  title: string;
+  body: string; // HTML
+  imageUrl?: string;
+};
+
+export type AboutContent = {
+  sections: AboutSection[];
+  lastEditedBy: UserId | null;
+  lastEditedAt: number;
+  publishedAt: number | null;
+};
+
 export type Bookclub = {
   id: string;
   bookTitle: string;
