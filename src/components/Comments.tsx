@@ -14,11 +14,11 @@ type Props = {
 
 function formatTime(ts: number) {
   const d = new Date(ts);
-  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   const hh = String(d.getHours()).padStart(2, "0");
   const mm = String(d.getMinutes()).padStart(2, "0");
-  return `${month}/${day} ${hh}:${mm}`;
+  return `${m}/${day} ${hh}:${mm}`;
 }
 
 function sanitize(html: string) {
@@ -31,6 +31,7 @@ function stripHtml(html: string) {
 
 export default function Comments({ parentType, parentId, isYH }: Props) {
   const [items, setItems] = useState<Comment[] | null>(null);
+  const [open, setOpen] = useState(false);
   const [nickname, setNickname] = useState("");
   const [text, setText] = useState("");
   const [secret, setSecret] = useState(false);
@@ -76,7 +77,6 @@ export default function Comments({ parentType, parentId, isYH }: Props) {
       setItems((prev) => [...(prev ?? []), data.comment]);
       setText("");
       setSecret(false);
-      // Force editor remount to clear content
       setEditorKey((k) => k + 1);
     } else {
       const data = await res.json().catch(() => ({}));
@@ -85,85 +85,158 @@ export default function Comments({ parentType, parentId, isYH }: Props) {
     setSubmitting(false);
   }
 
+  const count = items?.length ?? 0;
+
   return (
-    <section className="mt-12 pt-8 border-t border-line">
-      <div className="text-xs tracking-[0.25em] text-ink-soft text-center mb-6">
-        ── 💬 댓글 ──
+    <div
+      style={{
+        marginTop: 24,
+        paddingTop: 20,
+        borderTop: "1px dashed var(--line)",
+      }}
+    >
+      <div className="row-between" style={{ marginBottom: 12 }}>
+        <div className="section-title" style={{ fontSize: 15 }}>
+          💬 댓글{" "}
+          <span style={{ color: "var(--ink-3)", fontWeight: 400 }}>{count}</span>
+        </div>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={() => setOpen(!open)}
+        >
+          {open ? "접기" : "쓰기"}
+        </button>
       </div>
 
-      <ul className="space-y-3 mb-8">
-        {items === null && (
-          <li className="text-sm text-ink-soft text-center py-4">
-            불러오는 중…
-          </li>
-        )}
-        {items?.length === 0 && (
-          <li className="text-sm text-ink-soft text-center py-4">
-            첫 댓글을 남겨주세요
-          </li>
-        )}
-        {items?.map((c) => (
-          <li
-            key={c.id}
-            className={`px-4 py-3 rounded-md border border-line ${
-              c.secret ? "bg-y-bg/40" : "bg-paper-dark"
-            }`}
-          >
-            <div className="flex justify-between items-baseline mb-1">
-              <span className="text-sm font-medium">
-                {c.nickname}
-                {c.secret && <span className="ml-2 text-xs text-y">🔒 비밀</span>}
-              </span>
-              <span className="text-xs text-ink-soft">
-                {formatTime(c.createdAt)}
-              </span>
-            </div>
-            <div className="text-sm prose-serif">
-              {parse(sanitize(c.text))}
-            </div>
-          </li>
-        ))}
-      </ul>
+      {open && (
+        <form
+          onSubmit={submit}
+          className="card-flat fade-in"
+          style={{
+            padding: 14,
+            background: "var(--paper)",
+            border: "1px solid var(--line)",
+            marginBottom: 16,
+          }}
+        >
+          <div className="row gap-8" style={{ marginBottom: 8, flexWrap: "wrap" }}>
+            <input
+              className="input"
+              placeholder="닉네임"
+              maxLength={20}
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              style={{ maxWidth: 160 }}
+            />
+            {isYH && (
+              <label
+                className="meta"
+                style={{ marginLeft: "auto", cursor: "pointer" }}
+              >
+                <input
+                  type="checkbox"
+                  checked={secret}
+                  onChange={(e) => setSecret(e.target.checked)}
+                />
+                &nbsp;비밀 댓글
+              </label>
+            )}
+          </div>
 
-      <form onSubmit={submit} className="space-y-3">
-        <div className="flex gap-2">
-          <input
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            placeholder="닉네임"
-            maxLength={20}
-            className="px-3 py-2 rounded border border-line bg-paper text-sm focus:outline-none focus:border-ink/40 w-32"
+          <RichEditor
+            key={editorKey}
+            value={text}
+            onChange={setText}
+            placeholder="댓글을 남겨주세요…"
+            variant="compact"
+            minHeight={90}
           />
-          {isYH && (
-            <label className="flex items-center gap-1.5 text-xs text-ink-soft">
-              <input
-                type="checkbox"
-                checked={secret}
-                onChange={(e) => setSecret(e.target.checked)}
-              />
-              비밀 댓글
-            </label>
+
+          {error && (
+            <div className="meta" style={{ color: "var(--danger)", marginTop: 6 }}>
+              {error}
+            </div>
           )}
-        </div>
-        <RichEditor
-          key={editorKey}
-          value={text}
-          onChange={setText}
-          placeholder="댓글을 남겨주세요"
-          variant="compact"
-          minHeight={100}
-        />
-        {error && <p className="text-sm text-red-700">{error}</p>}
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={submitting}
-            className="btn disabled:opacity-50"
+
+          <div
+            className="row"
+            style={{ justifyContent: "flex-end", marginTop: 10, gap: 8 }}
           >
-            {submitting ? "남기는 중…" : "댓글 남기기"}
-          </button>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => setOpen(false)}
+            >
+              취소
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary btn-sm"
+              disabled={submitting}
+            >
+              {submitting ? "남기는 중…" : "남기기"}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {items === null ? (
+        <div className="meta" style={{ padding: "12px 4px" }}>
+          불러오는 중…
         </div>
-      </form>
-    </section>
+      ) : items.length === 0 ? (
+        <div
+          className="hand"
+          style={{
+            textAlign: "center",
+            color: "var(--ink-4)",
+            fontSize: 17,
+            padding: "16px 0",
+          }}
+        >
+          첫 댓글을 남겨주세요
+        </div>
+      ) : (
+        <ul className="col gap-12" style={{ marginTop: 4 }}>
+          {items.map((c) => (
+            <li
+              key={c.id}
+              style={{
+                padding: "10px 14px",
+                background: c.secret ? "var(--y-soft)" : "var(--paper)",
+                borderRadius: "var(--r-md)",
+                border: "1px solid var(--line)",
+              }}
+            >
+              <div className="row-between" style={{ marginBottom: 4 }}>
+                <span style={{ fontSize: 13, fontWeight: 500 }}>
+                  {c.nickname}
+                  {c.secret && (
+                    <span
+                      className="hand"
+                      style={{
+                        marginLeft: 6,
+                        color: "var(--y-deep)",
+                        fontSize: 14,
+                      }}
+                    >
+                      🔒 비밀
+                    </span>
+                  )}
+                </span>
+                <span className="meta">{formatTime(c.createdAt)}</span>
+              </div>
+              <div
+                className="serif"
+                style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.7 }}
+              >
+                {parse(sanitize(c.text))}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

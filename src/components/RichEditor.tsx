@@ -305,7 +305,7 @@ export function RichEditor({
 
       <EditorContent
         editor={editor}
-        className="prose-serif max-w-none px-4 py-3 focus:outline-none [&_.ProseMirror]:outline-none [&_.ProseMirror_p.is-editor-empty:first-child::before]:text-ink-soft/60 [&_.ProseMirror_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)] [&_.ProseMirror_p.is-editor-empty:first-child::before]:float-left [&_.ProseMirror_p.is-editor-empty:first-child::before]:pointer-events-none [&_.ProseMirror_p.is-editor-empty:first-child::before]:h-0 [&_.ProseMirror_img]:rounded-md [&_.ProseMirror_img]:max-w-full"
+        className="prose rich-editor-content"
         style={{ minHeight: minHeight ?? (showFull ? 320 : 120) }}
       />
     </div>

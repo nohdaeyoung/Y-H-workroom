@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { loginAction, type LoginState } from "./actions";
 
@@ -7,61 +8,75 @@ const initial: LoginState = { error: "" };
 
 export default function LoginForm({ from }: { from?: string }) {
   const [state, action] = useFormState(loginAction, initial);
+  const [who, setWho] = useState<"Y" | "H" | "">("");
+  const [pw, setPw] = useState("");
+
+  // who 선택 시 자동으로 login id 채움
+  const loginId = who === "Y" ? "daeyoung" : who === "H" ? "heeseo" : "";
 
   return (
-    <form action={action} className="space-y-4">
+    <form action={action}>
       <input type="hidden" name="from" value={from ?? "/"} />
+      <input type="hidden" name="id" value={loginId} />
 
-      <div>
-        <label htmlFor="id" className="block text-xs text-ink-soft mb-1.5 tracking-wide">
-          아이디
-        </label>
-        <input
-          id="id"
-          name="id"
-          type="text"
-          autoComplete="username"
-          placeholder="Y 또는 H"
-          required
-          className="w-full px-3 py-2 rounded border border-line bg-paper focus:outline-none focus:border-ink/40 text-sm"
-        />
+      <div className="row gap-12" style={{ marginBottom: 20 }}>
+        <button
+          type="button"
+          className={`btn flex-1 ${who === "Y" ? "btn-y" : ""}`}
+          onClick={() => setWho("Y")}
+        >
+          <span style={{ fontSize: 16 }}>🌾</span> &nbsp;Y · 대영
+        </button>
+        <button
+          type="button"
+          className={`btn flex-1 ${who === "H" ? "btn-h" : ""}`}
+          onClick={() => setWho("H")}
+        >
+          <span style={{ fontSize: 16 }}>🌙</span> &nbsp;H · 희서
+        </button>
       </div>
 
-      <div>
-        <label htmlFor="password" className="block text-xs text-ink-soft mb-1.5 tracking-wide">
-          비밀번호
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          placeholder="••••••••"
-          required
-          className="w-full px-3 py-2 rounded border border-line bg-paper focus:outline-none focus:border-ink/40 text-sm"
-        />
-      </div>
+      <label className="label">비밀번호</label>
+      <input
+        name="password"
+        type="password"
+        autoComplete="current-password"
+        placeholder="••••••••"
+        className="input"
+        value={pw}
+        onChange={(e) => setPw(e.target.value)}
+        required
+      />
 
       {state.error && (
-        <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">
+        <div
+          className="meta"
+          style={{
+            color: "var(--danger)",
+            marginTop: 10,
+            fontSize: 13,
+            display: "block",
+          }}
+        >
           {state.error}
-        </p>
+        </div>
       )}
 
-      <SubmitButton />
+      <SubmitBtn disabled={!who || !pw} />
     </form>
   );
 }
 
-function SubmitButton() {
+function SubmitBtn({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
   return (
     <button
       type="submit"
-      disabled={pending}
-      className="btn w-full py-2.5 disabled:opacity-50"
+      className="btn btn-primary btn-lg"
+      style={{ width: "100%", marginTop: 16 }}
+      disabled={pending || disabled}
     >
-      {pending ? "확인 중…" : "로그인"}
+      {pending ? "확인 중…" : "작업실로 들어가기"}
     </button>
   );
 }

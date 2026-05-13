@@ -47,10 +47,12 @@ export default function RootLayout({
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
         />
       </head>
-      <body className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-1 pb-20 md:pb-8">{children}</main>
-        <MobileTabBar />
+      <body>
+        <div className="app">
+          <Header />
+          <main className="content">{children}</main>
+          <MobileTabBar />
+        </div>
       </body>
     </html>
   );

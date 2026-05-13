@@ -21,29 +21,59 @@ export default async function EssayDetailPage({ params }: Props) {
   const [essay, session] = await Promise.all([getEssay(params.id), auth()]);
   if (!essay) notFound();
 
-  const isY = essay.author === "Y";
-  const labelClass = isY ? "text-y" : "text-h";
+  const cls = essay.author === "Y" ? "y" : "h";
+  const name = essay.author === "Y" ? "대영" : "희서";
+  const deepVar = cls === "y" ? "var(--y-deep)" : "var(--h-deep)";
   const isYH = !!session?.user?.id;
 
   return (
-    <article className="max-w-2xl mx-auto px-5 pt-12 pb-24">
-      <Link href="/essay" className="text-xs text-ink-soft hover:text-ink">
-        ← 에세이 목록
+    <div className="container narrow fade-in" style={{ maxWidth: 680 }}>
+      <Link
+        href="/essay"
+        className="btn btn-ghost btn-sm"
+        style={{ marginBottom: 24 }}
+      >
+        ← 나란히 보기로
       </Link>
 
-      <header className="mt-6 mb-10 pb-8 border-b border-line">
-        <div className={`text-xs tracking-[0.2em] ${labelClass} mb-3 font-medium`}>
-          {isY ? "Y · 대영" : "H · 희서"}
+      <div style={{ textAlign: "center", padding: "20px 0 32px" }}>
+        <div
+          className="row gap-8"
+          style={{ justifyContent: "center", marginBottom: 16 }}
+        >
+          <span className={`avatar-mini ${cls}`}>{essay.author}</span>
+          <div style={{ fontSize: 14 }}>
+            <span style={{ fontWeight: 500, color: deepVar }}>{name}</span>
+            <span className="meta" style={{ marginLeft: 8 }}>
+              {formatDate(essay.createdAt)}
+            </span>
+          </div>
         </div>
-        <h1 className="font-serif text-3xl md:text-4xl font-medium mb-3">
+        <h1
+          className="serif"
+          style={{ fontSize: 32, letterSpacing: "-0.025em", lineHeight: 1.3 }}
+        >
           {essay.title}
         </h1>
-        <div className="text-xs text-ink-soft">{formatDate(essay.createdAt)}</div>
-      </header>
+        {essay.tags && essay.tags.length > 0 && (
+          <div
+            className="row gap-4"
+            style={{ justifyContent: "center", marginTop: 14, flexWrap: "wrap" }}
+          >
+            {essay.tags.map((t) => (
+              <span key={t} className="chip" style={{ fontSize: 11 }}>
+                #{t}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
 
-      <SafeHtml html={essay.content} className="prose-serif text-base text-ink" />
+      <SafeHtml html={essay.content} className="prose" />
+
+      <div className="divider-dot" />
 
       <Comments parentType="essay" parentId={essay.id} isYH={isYH} />
-    </article>
+    </div>
   );
 }

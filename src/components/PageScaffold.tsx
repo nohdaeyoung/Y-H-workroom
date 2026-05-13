@@ -7,16 +7,35 @@ type Props = {
 
 export default function PageScaffold({ icon, title, subtitle, phase }: Props) {
   return (
-    <div className="container-prose pt-16 pb-24 text-center">
-      <div className="text-5xl mb-6">{icon}</div>
-      <h1 className="font-serif text-3xl md:text-4xl font-medium">{title}</h1>
+    <div
+      className="container narrow fade-in center"
+      style={{ paddingTop: 80, paddingBottom: 80 }}
+    >
+      <div style={{ fontSize: 48, marginBottom: 16 }}>{icon}</div>
+      <h1 className="page-title" style={{ fontSize: 32 }}>
+        {title}
+      </h1>
       {subtitle && (
-        <p className="mt-3 text-ink-soft font-serif">{subtitle}</p>
+        <div
+          className="serif"
+          style={{ color: "var(--ink-2)", marginTop: 6 }}
+        >
+          {subtitle}
+        </div>
       )}
-      <div className="mt-12 inline-block card-paper">
-        <p className="hand text-ink-soft text-lg">
-          ＿ {phase} 에서 만나요 ＿
-        </p>
+      <div className="divider-dot" />
+      <div
+        className="card-flat"
+        style={{
+          display: "inline-block",
+          padding: "16px 28px",
+          background: "var(--paper-2)",
+          border: "1px dashed var(--line)",
+        }}
+      >
+        <span className="hand" style={{ fontSize: 20, color: "var(--ink-3)" }}>
+          {phase}에서 만나요
+        </span>
       </div>
     </div>
   );

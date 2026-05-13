@@ -1,133 +1,166 @@
 import Link from "next/link";
+import { listEssays } from "@/lib/essays";
 
-type Activity = {
-  icon: string;
-  label: string;
-  detail: React.ReactNode;
-  when: string;
-  href: string;
-};
+export const dynamic = "force-dynamic";
 
-const recentActivities: Activity[] = [
-  {
+const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
+
+function formatToday() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}.${mm}.${dd} · ${DAYS[d.getDay()]}요일`;
+}
+
+function relativeTime(ts: number) {
+  const diff = Date.now() - ts;
+  const min = Math.floor(diff / 60000);
+  if (min < 1) return "방금";
+  if (min < 60) return `${min}분 전`;
+  const hour = Math.floor(min / 60);
+  if (hour < 24) return `${hour}시간 전`;
+  const day = Math.floor(hour / 24);
+  if (day < 7) return `${day}일 전`;
+  return `${Math.floor(day / 7)}주 전`;
+}
+
+export default async function HomePage() {
+  const essays = await listEssays({ status: "published", limit: 50 });
+
+  const recent = essays.slice(0, 5).map((e) => ({
     icon: "📝",
-    label: "에세이",
-    detail: (
+    kind: "에세이",
+    text: (
       <>
-        <span className="text-y font-medium">Y</span>가 &ldquo;비오는 날&rdquo;을 썼습니다
+        <span className={e.author === "Y" ? "text-y" : "text-h"}>
+          {e.author === "Y" ? "Y" : "H"}
+        </span>
+        가 「{e.title}」 을 썼습니다
       </>
     ),
-    when: "2시간 전",
-    href: "/essay",
-  },
-  {
-    icon: "✍️",
-    label: "이어쓰기",
-    detail: (
-      <>
-        &ldquo;골목길&rdquo;에 <span className="text-h font-medium">H</span>가 이어 썼습니다
-      </>
-    ),
-    when: "어제",
-    href: "/relay",
-  },
-  {
-    icon: "🎲",
-    label: "키워드",
-    detail: (
-      <>
-        &ldquo;빈 의자&rdquo; — Y <span className="text-y">✅</span>{" "}
-        H <span className="text-ink-soft">⏳</span>
-      </>
-    ),
-    when: "3일 전",
-    href: "/keyword",
-  },
-  {
-    icon: "📖",
-    label: "독서모임",
-    detail: <>「나는 나로 살기로 했다」</>,
-    when: "1주 전",
-    href: "/bookclub",
-  },
-  {
-    icon: "📷",
-    label: "사진+글",
-    detail: (
-      <>
-        <span className="text-h font-medium">H</span>가 사진을 올렸습니다,{" "}
-        <span className="text-y font-medium">Y</span>의 글 대기중
-      </>
-    ),
-    when: "오늘",
-    href: "/photostory",
-  },
-];
+    when: relativeTime(e.createdAt),
+    link: `/essay/${e.id}`,
+  }));
 
-const sections = [
-  { href: "/essay", icon: "📝", label: "에세이", desc: "나란히 읽기" },
-  { href: "/relay", icon: "✍️", label: "이어쓰기", desc: "한 문장씩 잇기" },
-  { href: "/keyword", icon: "🎲", label: "키워드", desc: "같은 단어, 다른 시선" },
-  { href: "/bookclub", icon: "📖", label: "독서모임", desc: "둘의 대화" },
-  { href: "/photostory", icon: "📷", label: "사진+글", desc: "찍고, 쓰다" },
-];
+  // 다른 섹션은 아직 데이터 없음 — 0편으로 표시
+  const sections = [
+    { icon: "📝", label: "에세이", href: "/essay", desc: "나란히 읽기", count: essays.length },
+    { icon: "✍️", label: "이어쓰기", href: "/relay", desc: "한 문장씩 번갈아", count: 0 },
+    { icon: "🎲", label: "키워드", href: "/keyword", desc: "AI가 던지는 단어", count: 0 },
+    { icon: "📖", label: "독서모임", href: "/bookclub", desc: "둘의 대화", count: 0 },
+    { icon: "📷", label: "사진+글", href: "/photostory", desc: "한 사람의 사진, 한 사람의 글", count: 0 },
+  ];
 
-export default function HomePage() {
   return (
-    <div className="container-prose pt-12 md:pt-20">
+    <div className="container narrow fade-in">
       {/* Hero */}
-      <section className="text-center">
-        <h1 className="font-serif text-4xl md:text-5xl font-medium tracking-tight">
-          <span className="text-y">영</span>
-          <span className="text-h">희</span>
-          <span className="ml-1">네 작업실</span>
+      <div style={{ padding: "60px 0 40px", textAlign: "center" }}>
+        <div className="hand" style={{ fontSize: 22, color: "var(--ink-3)" }}>
+          welcome to
+        </div>
+        <h1
+          className="serif"
+          style={{ fontSize: 42, letterSpacing: "-0.03em", marginTop: 8, lineHeight: 1.15 }}
+        >
+          <span style={{ color: "var(--y-deep)" }}>영</span>
+          <span style={{ color: "var(--ink-3)", fontWeight: 300 }}> · </span>
+          <span style={{ color: "var(--h-deep)" }}>희</span>
+          <span>네 작업실</span>
         </h1>
-        <p className="mt-4 text-ink-soft font-serif">
+        <div
+          className="serif"
+          style={{ marginTop: 16, fontSize: 17, color: "var(--ink-2)" }}
+        >
           두 사람의 글과 사진이 만나는 곳
-        </p>
-        <div className="mt-6 inline-block hand text-ink-soft text-lg opacity-70">
-          ＿ Y &amp; H ＿
         </div>
-      </section>
+        <div
+          className="hand"
+          style={{ marginTop: 24, fontSize: 20, color: "var(--ink-4)" }}
+        >
+          {formatToday()}
+        </div>
+      </div>
 
-      {/* 최근 활동 */}
-      <section className="mt-16">
-        <h2 className="text-xs tracking-[0.25em] text-ink-soft text-center mb-6">
-          ── 최근 활동 ──
-        </h2>
-        <ul className="space-y-1">
-          {recentActivities.map((a, i) => (
-            <li key={i}>
-              <Link
-                href={a.href}
-                className="flex items-baseline gap-3 px-4 py-3 rounded-md hover:bg-paper-dark transition-colors"
-              >
-                <span className="text-base">{a.icon}</span>
-                <span className="text-xs text-ink-soft w-16 shrink-0">{a.label}</span>
-                <span className="font-serif text-sm flex-1">{a.detail}</span>
-                <span className="text-xs text-ink-soft shrink-0">{a.when}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <div className="divider-dot" />
 
-      {/* 섹션 카드 */}
-      <section className="mt-12 mb-16">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {sections.map((s) => (
+      {/* 오늘의 작업실 */}
+      <h2 className="serif" style={{ fontSize: 22, marginBottom: 16 }}>
+        오늘의 작업실
+      </h2>
+      <ul className="col gap-8">
+        {recent.length === 0 && (
+          <li className="card-flat" style={{ textAlign: "center", color: "var(--ink-3)", padding: "32px" }}>
+            <span className="hand" style={{ fontSize: 18 }}>아직 비어 있어요</span>
+          </li>
+        )}
+        {recent.map((a, i) => (
+          <li key={i}>
             <Link
-              key={s.href}
-              href={s.href}
-              className="card-paper hover:border-ink/30 transition-colors text-center group"
+              href={a.link}
+              className="card lift"
+              style={{ display: "flex", gap: 16, padding: "14px 18px", alignItems: "center" }}
             >
-              <div className="text-2xl mb-2">{s.icon}</div>
-              <div className="font-serif text-sm font-medium">{s.label}</div>
-              <div className="text-xs text-ink-soft mt-1">{s.desc}</div>
+              <span style={{ fontSize: 22, lineHeight: 1 }}>{a.icon}</span>
+              <div className="flex-1">
+                <div
+                  style={{ fontSize: 12, color: "var(--ink-4)", letterSpacing: "0.05em" }}
+                >
+                  {a.kind.toUpperCase()}
+                </div>
+                <div
+                  className="serif"
+                  style={{ fontSize: 16, color: "var(--ink)", marginTop: 2 }}
+                >
+                  {a.text}
+                </div>
+              </div>
+              <span className="meta">{a.when}</span>
             </Link>
-          ))}
-        </div>
-      </section>
+          </li>
+        ))}
+      </ul>
+
+      <div className="divider-dot" />
+
+      {/* 둘러보기 */}
+      <h2 className="serif" style={{ fontSize: 22, marginBottom: 16 }}>
+        둘러보기
+      </h2>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+          gap: 12,
+        }}
+      >
+        {sections.map((s) => (
+          <Link
+            key={s.href}
+            href={s.href}
+            className="card lift"
+            style={{ padding: "18px 16px", textAlign: "center" }}
+          >
+            <div style={{ fontSize: 28 }}>{s.icon}</div>
+            <div className="serif" style={{ fontSize: 16, fontWeight: 600, marginTop: 8 }}>
+              {s.label}
+            </div>
+            <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 2 }}>
+              {s.desc}
+            </div>
+            <div className="hand" style={{ fontSize: 16, color: "var(--ink-4)", marginTop: 6 }}>
+              {s.count}편
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      <div
+        style={{ marginTop: 48, textAlign: "center", color: "var(--ink-4)" }}
+        className="hand"
+      >
+        한 페이지에 두 사람의 시간을 모아두는 곳
+      </div>
     </div>
   );
 }
