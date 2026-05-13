@@ -112,6 +112,7 @@ export type Bookclub = {
   bookAuthor: string;
   meetingDate: string;
   duration: string;
+  coverUrl: string | null;
   audioUrl: string | null;
   transcript: BookclubTranscriptLine[];
   status: BookclubStatus;

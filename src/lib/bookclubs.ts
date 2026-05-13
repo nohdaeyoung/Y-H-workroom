@@ -25,6 +25,7 @@ export async function listBookclubs(
       bookAuthor: m.bookAuthor,
       meetingDate: m.meetingDate,
       duration: m.duration,
+      coverUrl: null,
       audioUrl: null,
       transcript: m.transcript,
       status: "published" as BookclubStatus,
@@ -32,15 +33,17 @@ export async function listBookclubs(
       publishedAt: Date.now(),
     }));
   }
-  let q: FirebaseFirestore.Query = db
+  // status 필터는 코드에서 적용 (복합 인덱스 회피)
+  const snap = await db
     .collection(COLLECTION)
     .orderBy("createdAt", "desc")
-    .limit(100);
+    .limit(200)
+    .get();
+  let docs = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Bookclub));
   if (!opts.includeDrafts) {
-    q = q.where("status", "==", "published");
+    docs = docs.filter((b) => b.status === "published");
   }
-  const snap = await q.get();
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Bookclub));
+  return docs;
 }
 
 export async function getBookclub(id: string): Promise<Bookclub | null> {
@@ -56,6 +59,7 @@ export async function getBookclub(id: string): Promise<Bookclub | null> {
           bookAuthor: m.bookAuthor,
           meetingDate: m.meetingDate,
           duration: m.duration,
+          coverUrl: null,
           audioUrl: null,
           transcript: m.transcript,
           status: "published",
@@ -74,6 +78,7 @@ export type CreateBookclubDraftInput = {
   bookAuthor: string;
   meetingDate: string;
   duration?: string;
+  coverUrl?: string | null;
 };
 
 export async function createBookclubDraft(
@@ -86,6 +91,7 @@ export async function createBookclubDraft(
     bookAuthor: input.bookAuthor.trim(),
     meetingDate: input.meetingDate,
     duration: input.duration ?? "",
+    coverUrl: input.coverUrl ?? null,
     audioUrl: null,
     transcript: [],
     status: "review",
@@ -94,6 +100,14 @@ export async function createBookclubDraft(
   };
   const ref = await db.collection(COLLECTION).add(data);
   return { id: ref.id, ...data };
+}
+
+export async function updateBookclubCover(
+  id: string,
+  coverUrl: string | null
+): Promise<void> {
+  const db = getDbOrThrow();
+  await db.collection(COLLECTION).doc(id).update({ coverUrl });
 }
 
 export async function updateBookclubTranscript(

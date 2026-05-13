@@ -1,5 +1,10 @@
 import Link from "next/link";
 import { listEssays } from "@/lib/essays";
+import { listRelays } from "@/lib/relays";
+import { listKeywords } from "@/lib/keywords";
+import { listBookclubs } from "@/lib/bookclubs";
+import { listPhotostories } from "@/lib/photostories";
+import type { ReactNode } from "react";
 
 export const dynamic = "force-dynamic";
 
@@ -25,43 +30,167 @@ function relativeTime(ts: number) {
   return `${Math.floor(day / 7)}주 전`;
 }
 
+type Activity = {
+  icon: string;
+  kind: string;
+  text: ReactNode;
+  when: string;
+  ts: number;
+  link: string;
+};
+
+function authorBadge(author: "Y" | "H") {
+  return (
+    <span className={author === "Y" ? "text-y" : "text-h"}>
+      {author === "Y" ? "Y" : "H"}
+    </span>
+  );
+}
+
 export default async function HomePage() {
-  const essays = await listEssays({ status: "published", limit: 50 });
+  const [essays, relays, keywords, bookclubs, photostories] = await Promise.all([
+    listEssays({ status: "published", limit: 50 }),
+    listRelays(),
+    listKeywords(),
+    listBookclubs(),
+    listPhotostories(),
+  ]);
 
-  const recent = essays.slice(0, 5).map((e) => ({
-    icon: "📝",
-    kind: "에세이",
-    text: (
-      <>
-        <span className={e.author === "Y" ? "text-y" : "text-h"}>
-          {e.author === "Y" ? "Y" : "H"}
-        </span>
-        가 「{e.title}」 을 썼습니다
-      </>
-    ),
-    when: relativeTime(e.createdAt),
-    link: `/essay/${e.id}`,
-  }));
+  // 각 컬렉션 → Activity로 변환
+  const activities: Activity[] = [];
 
-  // 다른 섹션은 아직 데이터 없음 — 0편으로 표시
+  for (const e of essays) {
+    activities.push({
+      icon: "📝",
+      kind: "에세이",
+      text: (
+        <>
+          {authorBadge(e.author)}가 「{e.title}」 을 썼습니다
+        </>
+      ),
+      when: relativeTime(e.createdAt),
+      ts: e.createdAt,
+      link: `/essay/${e.id}`,
+    });
+  }
+
+  for (const r of relays) {
+    activities.push({
+      icon: "✍️",
+      kind: "이어쓰기",
+      text:
+        r.status === "completed" ? (
+          <>「{r.title}」이 완결됐어요</>
+        ) : (
+          <>
+            「{r.title}」에 {authorBadge(r.lastAuthor)}가 이어 썼습니다
+          </>
+        ),
+      when: relativeTime(r.updatedAt),
+      ts: r.updatedAt,
+      link: `/relay/${r.id}`,
+    });
+  }
+
+  for (const k of keywords) {
+    let text: ReactNode;
+    if (k.status === "both_done") {
+      text = <>키워드 &ldquo;{k.keyword}&rdquo; 둘 다 완성 · 공개</>;
+    } else if (k.status === "y_done") {
+      text = (
+        <>
+          키워드 &ldquo;{k.keyword}&rdquo; — Y <span className="text-y">✅</span>{" "}
+          H <span className="text-ink-soft">⏳</span>
+        </>
+      );
+    } else if (k.status === "h_done") {
+      text = (
+        <>
+          키워드 &ldquo;{k.keyword}&rdquo; — Y <span className="text-ink-soft">⏳</span>{" "}
+          H <span className="text-h">✅</span>
+        </>
+      );
+    } else {
+      text = <>새 키워드 &ldquo;{k.keyword}&rdquo;</>;
+    }
+    activities.push({
+      icon: "🎲",
+      kind: "키워드",
+      text,
+      when: relativeTime(k.suggestedAt),
+      ts: k.suggestedAt,
+      link: `/keyword/${k.id}`,
+    });
+  }
+
+  for (const b of bookclubs) {
+    activities.push({
+      icon: "📖",
+      kind: "독서모임",
+      text: <>「{b.bookTitle}」 — {b.bookAuthor}</>,
+      when: b.publishedAt ? relativeTime(b.publishedAt) : "",
+      ts: b.publishedAt ?? b.createdAt,
+      link: `/bookclub/${b.id}`,
+    });
+  }
+
+  for (const p of photostories) {
+    let text: ReactNode;
+    if (p.status === "completed") {
+      text = (
+        <>
+          {authorBadge(p.photoAuthor)}의 사진에 {authorBadge(p.textAuthor)}의 글이 채워졌어요
+        </>
+      );
+    } else {
+      text = (
+        <>
+          {authorBadge(p.photoAuthor)}가 사진을 올렸습니다 ·{" "}
+          {authorBadge(p.textAuthor)}의 글 대기중
+        </>
+      );
+    }
+    const ts = p.textWrittenAt ?? p.photoUploadedAt;
+    activities.push({
+      icon: "📷",
+      kind: "사진+글",
+      text,
+      when: relativeTime(ts),
+      ts,
+      link: `/photostory/${p.id}`,
+    });
+  }
+
+  const recent = activities.sort((a, b) => b.ts - a.ts).slice(0, 6);
+
+  // 둘러보기 카운트
+  const publishedBookclubs = bookclubs.filter((b) => b.status === "published")
+    .length;
+  const completedPhotos = photostories.filter((p) => p.status === "completed")
+    .length;
+
   const sections = [
     { icon: "📝", label: "에세이", href: "/essay", desc: "나란히 읽기", count: essays.length },
-    { icon: "✍️", label: "이어쓰기", href: "/relay", desc: "한 문장씩 번갈아", count: 0 },
-    { icon: "🎲", label: "키워드", href: "/keyword", desc: "AI가 던지는 단어", count: 0 },
-    { icon: "📖", label: "독서모임", href: "/bookclub", desc: "둘의 대화", count: 0 },
-    { icon: "📷", label: "사진+글", href: "/photostory", desc: "한 사람의 사진, 한 사람의 글", count: 0 },
+    { icon: "✍️", label: "이어쓰기", href: "/relay", desc: "한 문장씩 번갈아", count: relays.length },
+    { icon: "🎲", label: "키워드", href: "/keyword", desc: "AI가 던지는 단어", count: keywords.length },
+    { icon: "📖", label: "독서모임", href: "/bookclub", desc: "둘의 대화", count: publishedBookclubs },
+    { icon: "📷", label: "사진+글", href: "/photostory", desc: "한 사람의 사진, 한 사람의 글", count: completedPhotos },
   ];
 
   return (
     <div className="container narrow fade-in">
-      {/* Hero */}
       <div style={{ padding: "60px 0 40px", textAlign: "center" }}>
         <div className="hand" style={{ fontSize: 22, color: "var(--ink-3)" }}>
           welcome to
         </div>
         <h1
           className="serif"
-          style={{ fontSize: 42, letterSpacing: "-0.03em", marginTop: 8, lineHeight: 1.15 }}
+          style={{
+            fontSize: 42,
+            letterSpacing: "-0.03em",
+            marginTop: 8,
+            lineHeight: 1.15,
+          }}
         >
           <span style={{ color: "var(--y-deep)" }}>영</span>
           <span style={{ color: "var(--ink-3)", fontWeight: 300 }}> · </span>
@@ -84,13 +213,19 @@ export default async function HomePage() {
 
       <div className="divider-dot" />
 
-      {/* 오늘의 작업실 */}
       <h2 className="serif" style={{ fontSize: 22, marginBottom: 16 }}>
         오늘의 작업실
       </h2>
       <ul className="col gap-8">
         {recent.length === 0 && (
-          <li className="card-flat" style={{ textAlign: "center", color: "var(--ink-3)", padding: "32px" }}>
+          <li
+            className="card-flat"
+            style={{
+              textAlign: "center",
+              color: "var(--ink-3)",
+              padding: "32px",
+            }}
+          >
             <span className="hand" style={{ fontSize: 18 }}>아직 비어 있어요</span>
           </li>
         )}
@@ -99,7 +234,12 @@ export default async function HomePage() {
             <Link
               href={a.link}
               className="card lift"
-              style={{ display: "flex", gap: 16, padding: "14px 18px", alignItems: "center" }}
+              style={{
+                display: "flex",
+                gap: 16,
+                padding: "14px 18px",
+                alignItems: "center",
+              }}
             >
               <span style={{ fontSize: 22, lineHeight: 1 }}>{a.icon}</span>
               <div className="flex-1">
@@ -115,7 +255,7 @@ export default async function HomePage() {
                   {a.text}
                 </div>
               </div>
-              <span className="meta">{a.when}</span>
+              {a.when && <span className="meta">{a.when}</span>}
             </Link>
           </li>
         ))}
@@ -123,7 +263,6 @@ export default async function HomePage() {
 
       <div className="divider-dot" />
 
-      {/* 둘러보기 */}
       <h2 className="serif" style={{ fontSize: 22, marginBottom: 16 }}>
         둘러보기
       </h2>
@@ -148,7 +287,10 @@ export default async function HomePage() {
             <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 2 }}>
               {s.desc}
             </div>
-            <div className="hand" style={{ fontSize: 16, color: "var(--ink-4)", marginTop: 6 }}>
+            <div
+              className="hand"
+              style={{ fontSize: 16, color: "var(--ink-4)", marginTop: 6 }}
+            >
               {s.count}편
             </div>
           </Link>

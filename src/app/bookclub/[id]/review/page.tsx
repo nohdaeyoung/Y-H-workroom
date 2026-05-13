@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { getBookclub } from "@/lib/bookclubs";
 import BookclubReviewClient from "@/components/BookclubReviewClient";
 import BookclubAudioUploader from "@/components/BookclubAudioUploader";
+import BookclubCoverUploader from "@/components/BookclubCoverUploader";
 import {
   publishAction,
   unpublishAction,
@@ -60,6 +61,12 @@ export default async function BookclubReviewPage({ params }: Props) {
           )}
         </div>
       </div>
+
+      <BookclubCoverUploader
+        bookclubId={b.id}
+        initialCoverUrl={b.coverUrl}
+        bookTitle={b.bookTitle}
+      />
 
       <BookclubAudioUploader
         bookclubId={b.id}

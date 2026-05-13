@@ -6,7 +6,35 @@ import type { Bookclub } from "@/types/domain";
 export const metadata = { title: "독서모임 — 영희네 작업실" };
 export const dynamic = "force-dynamic";
 
-function BookSpine({ title, hue }: { title: string; hue: number }) {
+function BookSpine({
+  title,
+  hue,
+  coverUrl,
+}: {
+  title: string;
+  hue: number;
+  coverUrl?: string | null;
+}) {
+  if (coverUrl) {
+    return (
+      <div
+        style={{
+          width: 80,
+          height: 110,
+          flexShrink: 0,
+          borderRadius: "2px 6px 6px 2px",
+          overflow: "hidden",
+          boxShadow: "2px 2px 6px oklch(0.3 0.04 70 / 0.15)",
+        }}
+      >
+        <img
+          src={coverUrl}
+          alt={title}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      </div>
+    );
+  }
   return (
     <div
       style={{
@@ -62,6 +90,7 @@ function BookclubCard({ b }: { b: Bookclub }) {
         <BookSpine
           title={b.bookTitle}
           hue={30 + (b.bookTitle.charCodeAt(0) * 7) % 200}
+          coverUrl={b.coverUrl}
         />
         <div className="flex-1">
           <div className="row gap-8" style={{ flexWrap: "wrap" }}>

@@ -7,6 +7,7 @@ import {
   createBookclubDraft,
   publishBookclub,
   unpublishBookclub,
+  updateBookclubCover,
   updateBookclubTranscript,
 } from "@/lib/bookclubs";
 import type { BookclubTranscriptLine, UserId } from "@/types/domain";
@@ -25,6 +26,8 @@ export async function createDraftAction(
   const bookAuthor = String(formData.get("bookAuthor") ?? "").trim();
   const meetingDate = String(formData.get("meetingDate") ?? "").trim();
   const duration = String(formData.get("duration") ?? "").trim();
+  const coverUrlRaw = String(formData.get("coverUrl") ?? "").trim();
+  const coverUrl = coverUrlRaw.startsWith("http") ? coverUrlRaw : null;
 
   if (!bookTitle || !bookAuthor || !meetingDate) {
     return { error: "책 제목, 저자, 모임 날짜를 모두 적어주세요" };
@@ -37,6 +40,7 @@ export async function createDraftAction(
       bookAuthor,
       meetingDate,
       duration,
+      coverUrl,
     });
     id = b.id;
   } catch (err) {
@@ -82,6 +86,21 @@ export async function saveTranscriptAction(
   revalidatePath(`/bookclub/${id}/review`);
   revalidatePath(`/bookclub/${id}`);
   return { error: "", ok: true };
+}
+
+export async function updateCoverAction(formData: FormData) {
+  "use server";
+  const session = await auth();
+  const uid = session?.user?.id;
+  if (uid !== "Y" && uid !== "H") return;
+  const id = String(formData.get("id") ?? "");
+  const url = String(formData.get("coverUrl") ?? "").trim();
+  if (!id) return;
+  const next = url.startsWith("http") ? url : null;
+  await updateBookclubCover(id, next);
+  revalidatePath(`/bookclub/${id}/review`);
+  revalidatePath(`/bookclub/${id}`);
+  revalidatePath("/bookclub");
 }
 
 export async function publishAction(formData: FormData) {
