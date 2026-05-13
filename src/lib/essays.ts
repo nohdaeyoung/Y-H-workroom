@@ -22,19 +22,25 @@ export async function listEssays(opts: ListOpts = {}): Promise<Essay[]> {
     return filterMock(MOCK_ESSAYS, opts);
   }
 
-  let q: FirebaseFirestore.Query = db
+  // 단일 필드 orderBy만 사용 (createdAt) — 자동 인덱스로 항상 작동.
+  // status / author 필터는 client-side에서 적용.
+  // 대용량으로 가면 firestore.indexes.json의 복합 인덱스를 deploy해서
+  // 서버 사이드 .where()로 옮기는 것을 권장.
+  const snap = await db
     .collection(COLLECTION)
-    .orderBy("createdAt", "desc");
+    .orderBy("createdAt", "desc")
+    .limit((opts.limit ?? 50) * 3)
+    .get();
 
-  if (opts.author) q = q.where("author", "==", opts.author);
+  let docs = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Essay));
+
+  if (opts.author) docs = docs.filter((e) => e.author === opts.author);
   if (opts.status) {
-    if (Array.isArray(opts.status)) q = q.where("status", "in", opts.status);
-    else q = q.where("status", "==", opts.status);
+    const arr = Array.isArray(opts.status) ? opts.status : [opts.status];
+    docs = docs.filter((e) => arr.includes(e.status));
   }
-  if (opts.limit) q = q.limit(opts.limit);
-
-  const snap = await q.get();
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Essay));
+  if (opts.limit) docs = docs.slice(0, opts.limit);
+  return docs;
 }
 
 export async function getEssay(id: string): Promise<Essay | null> {

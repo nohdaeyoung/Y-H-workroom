@@ -19,13 +19,15 @@ export async function listComments(
   if (!db) {
     return memStore.get(key(parentType, parentId)) ?? [];
   }
+  // 인덱스 없이 작동하도록 parentId만 쿼리 후 client-side 정렬/필터
   const snap = await db
     .collection(COLLECTION)
-    .where("parentType", "==", parentType)
     .where("parentId", "==", parentId)
-    .orderBy("createdAt", "asc")
     .get();
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Comment));
+  const all = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Comment));
+  return all
+    .filter((c) => c.parentType === parentType)
+    .sort((a, b) => a.createdAt - b.createdAt);
 }
 
 export async function createComment(
