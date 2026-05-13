@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import DOMPurify from "isomorphic-dompurify";
 import { auth } from "@/auth";
 import { createComment, listComments } from "@/lib/comments";
 import type { Comment } from "@/types/domain";
@@ -44,12 +45,20 @@ export async function POST(req: NextRequest) {
   }
 
   const nickname = String(body.nickname ?? "").trim().slice(0, 20);
-  const text = String(body.text ?? "").trim();
-  if (!nickname || !text) {
-    return NextResponse.json({ error: "닉네임과 내용을 입력해주세요" }, { status: 400 });
+  const rawText = String(body.text ?? "");
+  const text = DOMPurify.sanitize(rawText, { USE_PROFILES: { html: true } });
+  const textPlain = text.replace(/<[^>]+>/g, "").trim();
+  if (!nickname || !textPlain) {
+    return NextResponse.json(
+      { error: "닉네임과 내용을 입력해주세요" },
+      { status: 400 }
+    );
   }
-  if (text.length > 1000) {
-    return NextResponse.json({ error: "댓글은 1000자 이내로 부탁해요" }, { status: 400 });
+  if (text.length > 5000) {
+    return NextResponse.json(
+      { error: "댓글이 너무 길어요" },
+      { status: 400 }
+    );
   }
 
   const session = await auth();

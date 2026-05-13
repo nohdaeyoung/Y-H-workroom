@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import parse from "html-react-parser";
+import DOMPurify from "isomorphic-dompurify";
 import type { Comment } from "@/types/domain";
+import { RichEditor } from "@/components/RichEditor";
 
 type Props = {
   parentType: Comment["parentType"];
@@ -18,6 +21,14 @@ function formatTime(ts: number) {
   return `${month}/${day} ${hh}:${mm}`;
 }
 
+function sanitize(html: string) {
+  return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
+}
+
+function stripHtml(html: string) {
+  return html.replace(/<[^>]+>/g, "").trim();
+}
+
 export default function Comments({ parentType, parentId, isYH }: Props) {
   const [items, setItems] = useState<Comment[] | null>(null);
   const [nickname, setNickname] = useState("");
@@ -25,6 +36,7 @@ export default function Comments({ parentType, parentId, isYH }: Props) {
   const [secret, setSecret] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editorKey, setEditorKey] = useState(0);
 
   async function load() {
     const res = await fetch(
@@ -46,7 +58,7 @@ export default function Comments({ parentType, parentId, isYH }: Props) {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!nickname.trim() || !text.trim()) {
+    if (!nickname.trim() || !stripHtml(text)) {
       setError("닉네임과 내용을 적어주세요");
       return;
     }
@@ -64,6 +76,8 @@ export default function Comments({ parentType, parentId, isYH }: Props) {
       setItems((prev) => [...(prev ?? []), data.comment]);
       setText("");
       setSecret(false);
+      // Force editor remount to clear content
+      setEditorKey((k) => k + 1);
     } else {
       const data = await res.json().catch(() => ({}));
       setError(data.error || "댓글 저장에 실패했어요");
@@ -79,7 +93,9 @@ export default function Comments({ parentType, parentId, isYH }: Props) {
 
       <ul className="space-y-3 mb-8">
         {items === null && (
-          <li className="text-sm text-ink-soft text-center py-4">불러오는 중…</li>
+          <li className="text-sm text-ink-soft text-center py-4">
+            불러오는 중…
+          </li>
         )}
         {items?.length === 0 && (
           <li className="text-sm text-ink-soft text-center py-4">
@@ -96,13 +112,15 @@ export default function Comments({ parentType, parentId, isYH }: Props) {
             <div className="flex justify-between items-baseline mb-1">
               <span className="text-sm font-medium">
                 {c.nickname}
-                {c.secret && (
-                  <span className="ml-2 text-xs text-y">🔒 비밀</span>
-                )}
+                {c.secret && <span className="ml-2 text-xs text-y">🔒 비밀</span>}
               </span>
-              <span className="text-xs text-ink-soft">{formatTime(c.createdAt)}</span>
+              <span className="text-xs text-ink-soft">
+                {formatTime(c.createdAt)}
+              </span>
             </div>
-            <p className="text-sm prose-serif whitespace-pre-wrap">{c.text}</p>
+            <div className="text-sm prose-serif">
+              {parse(sanitize(c.text))}
+            </div>
           </li>
         ))}
       </ul>
@@ -127,17 +145,21 @@ export default function Comments({ parentType, parentId, isYH }: Props) {
             </label>
           )}
         </div>
-        <textarea
+        <RichEditor
+          key={editorKey}
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={setText}
           placeholder="댓글을 남겨주세요"
-          rows={3}
-          maxLength={1000}
-          className="w-full px-3 py-2 rounded border border-line bg-paper text-sm prose-serif focus:outline-none focus:border-ink/40 resize-y"
+          variant="compact"
+          minHeight={100}
         />
         {error && <p className="text-sm text-red-700">{error}</p>}
         <div className="flex justify-end">
-          <button type="submit" disabled={submitting} className="btn disabled:opacity-50">
+          <button
+            type="submit"
+            disabled={submitting}
+            className="btn disabled:opacity-50"
+          >
             {submitting ? "남기는 중…" : "댓글 남기기"}
           </button>
         </div>
