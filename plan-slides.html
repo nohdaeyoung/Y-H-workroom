@@ -654,11 +654,11 @@
       <div class="content-grid three-col">
         <div class="card y-card">
           <div class="card-title">Y · 대영</div>
-          <div class="card-body">관리자 + 작성자<br/>비밀번호 로그인</div>
+          <div class="card-body">관리자 + 작성자<br/>ID/PW → 구글 연동</div>
         </div>
         <div class="card h-card">
           <div class="card-title">H · 희서</div>
-          <div class="card-body">관리자 + 작성자<br/>비밀번호 로그인</div>
+          <div class="card-body">관리자 + 작성자<br/>ID/PW → 구글 연동</div>
         </div>
         <div class="card">
           <div class="card-title">방문자</div>
@@ -669,9 +669,10 @@
         <div class="card-title">인증 방식</div>
         <div class="card-body">
           <ul>
-            <li>Y/H는 단 2명이므로 비밀번호 인증 (쿠키/세션 기반)</li>
-            <li>방문자는 가입 없이 닉네임만으로 댓글 가능</li>
-            <li>댓글에는 비밀 옵션 (Y/H만 볼 수 있음)</li>
+            <li><strong>초기</strong> · Y/H는 아이디 + 비밀번호로 로그인 (쿠키/세션 기반)</li>
+            <li><strong>이후</strong> · 어드민(<code>/admin/account</code>)에서 구글 계정 연동 → 구글 로그인 가능</li>
+            <li>구글 OAuth 콜백은 사전 등록된 Y/H 이메일만 허용 (화이트리스트)</li>
+            <li>방문자는 가입 없이 닉네임만으로 댓글 가능 · 비밀 댓글 옵션</li>
           </ul>
         </div>
       </div>
@@ -702,6 +703,12 @@
         <div><span class="route">/photostory/[id]</span>      사진+글 상세</div>
         <div><span class="route">/login</span>                로그인</div>
         <div><span class="route">/about</span>                소개</div>
+        <div>&nbsp;</div>
+        <div><span class="route">/admin</span>                어드민 홈 <span class="auth">Y/H 전용</span></div>
+        <div><span class="route">/admin/about</span>          소개 페이지 콘텐츠 관리</div>
+        <div><span class="route">/admin/account</span>        계정 설정 (비밀번호 / 구글 연동)</div>
+        <div><span class="route">/admin/my</span>             내 글 모아보기 (항목별 탭)</div>
+        <div><span class="route">/admin/my/[section]</span>   섹션별 내 글</div>
       </div>
     </div>
   </section>
@@ -1032,10 +1039,111 @@
     </div>
   </section>
 
-  <!-- 13. 홈 -->
+  <!-- 13. 어드민 — 어드민 홈 -->
   <section class="slide">
     <header class="slide-header">
       <span class="slide-num">09</span>
+      <h2 class="slide-title">어드민 — Y/H 운영 공간</h2>
+      <span class="slide-sub">FEATURE 06</span>
+    </header>
+    <div class="content">
+      <p style="font-family:'Noto Serif KR',serif; font-size: 16px; color: var(--ink-soft);">
+        둘만 들어오는 비공개 작업 공간. 글 관리부터 소개 페이지 편집, 구글 계정 연동까지.
+      </p>
+      <div class="panel">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--line);">
+          <div>
+            <div style="font-family:'Noto Serif KR',serif; font-size: 20px;">환영해요, <span style="color:var(--y-color)">Y</span> 님</div>
+            <div style="font-size: 12px; color: var(--ink-soft); margin-top: 4px;">2026.05.13 · 마지막 로그인 어제</div>
+          </div>
+          <div style="font-size: 11px; letter-spacing: 0.2em; color: var(--ink-soft);">/admin</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px;">
+          <div style="text-align:center; padding: 14px 8px; background: var(--y-bg); border-radius: 4px;"><div style="font-family:'Noto Serif KR',serif; font-size: 22px;">12</div><div style="font-size: 11px; color: var(--ink-soft); margin-top: 4px;">📝 에세이</div></div>
+          <div style="text-align:center; padding: 14px 8px; background: var(--h-bg); border-radius: 4px;"><div style="font-family:'Noto Serif KR',serif; font-size: 22px;">3</div><div style="font-size: 11px; color: var(--ink-soft); margin-top: 4px;">✍️ 이어쓰기</div></div>
+          <div style="text-align:center; padding: 14px 8px; background: var(--y-bg); border-radius: 4px;"><div style="font-family:'Noto Serif KR',serif; font-size: 22px;">8</div><div style="font-size: 11px; color: var(--ink-soft); margin-top: 4px;">🎲 키워드</div></div>
+          <div style="text-align:center; padding: 14px 8px; background: var(--h-bg); border-radius: 4px;"><div style="font-family:'Noto Serif KR',serif; font-size: 22px;">2</div><div style="font-size: 11px; color: var(--ink-soft); margin-top: 4px;">📖 독서모임</div></div>
+          <div style="text-align:center; padding: 14px 8px; background: var(--y-bg); border-radius: 4px;"><div style="font-family:'Noto Serif KR',serif; font-size: 22px;">5</div><div style="font-size: 11px; color: var(--ink-soft); margin-top: 4px;">📷 사진+글</div></div>
+        </div>
+
+        <div style="font-size: 12px; letter-spacing: 0.2em; color: var(--ink-soft); margin-bottom: 10px;">⏳ 해야 할 일</div>
+        <div style="display: flex; flex-direction: column; gap: 6px; font-family:'Noto Serif KR',serif; font-size: 14px; line-height: 1.7;">
+          <div>· H가 사진을 올렸어요 — <span style="color:var(--h-color)">글 써주세요</span></div>
+          <div>· 키워드 <strong>"빈 의자"</strong> 아직 안 쓰셨어요</div>
+          <div>· 비밀 댓글 2개 도착</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px;">
+          <div style="text-align:center; padding: 14px; background: var(--paper-dark); border: 1px solid var(--line); border-radius: 4px; font-size: 13px;">📝 내 글<br/><span style="font-size:11px; color: var(--ink-soft);">/admin/my</span></div>
+          <div style="text-align:center; padding: 14px; background: var(--paper-dark); border: 1px solid var(--line); border-radius: 4px; font-size: 13px;">📄 소개 관리<br/><span style="font-size:11px; color: var(--ink-soft);">/admin/about</span></div>
+          <div style="text-align:center; padding: 14px; background: var(--paper-dark); border: 1px solid var(--line); border-radius: 4px; font-size: 13px;">⚙️ 계정 설정<br/><span style="font-size:11px; color: var(--ink-soft);">/admin/account</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14. 어드민 — 하위 페이지 + 보안 -->
+  <section class="slide">
+    <header class="slide-header">
+      <span class="slide-num">09</span>
+      <h2 class="slide-title">어드민 — 하위 페이지</h2>
+      <span class="slide-sub">FEATURE 06</span>
+    </header>
+    <div class="content">
+      <div class="content-grid two-col">
+        <div class="card">
+          <div class="card-title">📝 /admin/my · 내 글 모아보기</div>
+          <div class="card-body">
+            <ul>
+              <li>항목별 탭: 에세이 · 이어쓰기 · 키워드 · 독서모임 · 사진+글</li>
+              <li>로그인한 본인이 쓴 글만 필터링</li>
+              <li>상태 필터: 발행 / 임시저장 / 비공개 / 대기중</li>
+              <li>수정·삭제 빠른 접근, 공개↔비공개 토글</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">📄 /admin/about · 소개 페이지 관리</div>
+          <div class="card-body">
+            <ul>
+              <li>/about 콘텐츠를 어드민에서 직접 편집</li>
+              <li>섹션 단위: 헤더 · 인삿말 · Y/H 프로필 · 이야기 · 연락처</li>
+              <li>TipTap 에디터 + 이미지 업로드</li>
+              <li>마지막 편집자 (Y/H) + 편집 시간 기록</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card y-card">
+          <div class="card-title">⚙️ /admin/account · 계정 + 구글 연동</div>
+          <div class="card-body">
+            <ul>
+              <li>표시 이름 · 프로필 이미지 · 비밀번호 변경</li>
+              <li><strong>구글 계정 연동</strong> 버튼 → OAuth 플로우</li>
+              <li>연동 후 ID/PW + 구글 로그인 둘 다 가능</li>
+              <li>연동 해제 시 비밀번호 1회 설정 필수</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card h-card">
+          <div class="card-title">🔒 보안</div>
+          <div class="card-body">
+            <ul>
+              <li>모든 <code>/admin/*</code> 미들웨어에서 Y/H 세션 검증</li>
+              <li>비로그인 / 다른 방문자 → <code>/login</code> 리다이렉트</li>
+              <li>구글 OAuth 콜백 — <strong>Y/H 이메일 화이트리스트</strong>로 검증</li>
+              <li>외부 구글 계정 가입 시도 차단</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15. 홈 -->
+  <section class="slide">
+    <header class="slide-header">
+      <span class="slide-num">10</span>
       <h2 class="slide-title">홈 페이지</h2>
       <span class="slide-sub">HOME</span>
     </header>
@@ -1060,7 +1168,7 @@
   <!-- 14. 기술 스택 -->
   <section class="slide">
     <header class="slide-header">
-      <span class="slide-num">10</span>
+      <span class="slide-num">11</span>
       <h2 class="slide-title">기술 스택</h2>
       <span class="slide-sub">STACK</span>
     </header>
@@ -1085,7 +1193,7 @@
   <!-- 15. 데이터 모델 -->
   <section class="slide">
     <header class="slide-header">
-      <span class="slide-num">11</span>
+      <span class="slide-num">12</span>
       <h2 class="slide-title">데이터 모델</h2>
       <span class="slide-sub">SCHEMA</span>
     </header>
@@ -1094,9 +1202,13 @@
         <div class="schema">
           <div class="schema-name">users</div>
           <div class="schema-field"><span class="key">id</span>: <span class="type">"Y" | "H"</span></div>
-          <div class="schema-field"><span class="key">name</span>: <span class="type">string</span></div>
-          <div class="schema-field"><span class="key">passwordHash</span>: <span class="type">string</span></div>
-          <div class="schema-field"><span class="key">avatar</span>: <span class="type">string</span></div>
+          <div class="schema-field"><span class="key">name, displayName</span></div>
+          <div class="schema-field"><span class="key">email</span> (화이트리스트)</div>
+          <div class="schema-field"><span class="key">passwordHash, avatar</span></div>
+          <div class="schema-field"><span class="key">googleId</span>: <span class="type">str|null</span></div>
+          <div class="schema-field"><span class="key">googleEmail</span>: <span class="type">str|null</span></div>
+          <div class="schema-field"><span class="key">googleLinkedAt</span>: <span class="type">ts|null</span></div>
+          <div class="schema-field"><span class="key">lastLoginAt</span></div>
         </div>
         <div class="schema">
           <div class="schema-name">essays</div>
@@ -1137,6 +1249,16 @@
           <div class="schema-field"><span class="key">status</span>: waiting / completed</div>
           <div class="schema-field"><span class="key">comments[]</span> 서브컬렉션</div>
         </div>
+        <div class="schema">
+          <div class="schema-name">aboutContent</div>
+          <div class="schema-field"><span class="key">id</span>: <span class="type">"main"</span></div>
+          <div class="schema-field"><span class="key">sections[]</span>:</div>
+          <div class="schema-field">&nbsp;&nbsp;<span class="key">{key, title, body,</span></div>
+          <div class="schema-field">&nbsp;&nbsp;<span class="key">&nbsp;imageUrl?}</span></div>
+          <div class="schema-field"><span class="key">lastEditedBy</span>: <span class="type">"Y"|"H"</span></div>
+          <div class="schema-field"><span class="key">lastEditedAt</span></div>
+          <div class="schema-field"><span class="key">publishedAt</span></div>
+        </div>
       </div>
     </div>
   </section>
@@ -1144,9 +1266,9 @@
   <!-- 16. 로드맵 -->
   <section class="slide">
     <header class="slide-header">
-      <span class="slide-num">12</span>
+      <span class="slide-num">13</span>
       <h2 class="slide-title">개발 로드맵</h2>
-      <span class="slide-sub">13일 · 6단계</span>
+      <span class="slide-sub">14일 · 6단계</span>
     </header>
     <div class="content">
       <div class="roadmap">
@@ -1171,8 +1293,8 @@
           <div class="phase-tasks">사진+글 / 사진 업로드, 글쓰기 요청, 갤러리 그리드, 슬라이드 갤러리, 필터(전체/H→Y/Y→H)</div>
         </div>
         <div class="phase">
-          <div><div class="phase-label">Phase 6</div><div class="phase-days">Day 12~13</div></div>
-          <div class="phase-tasks">마무리 / About 페이지, SEO/OG 이미지, 반응형 점검, 배포 + 도메인 연결</div>
+          <div><div class="phase-label">Phase 6</div><div class="phase-days">Day 12~14</div></div>
+          <div class="phase-tasks">어드민 + 마무리 / Y/H 세션 가드 · /admin/my 내 글 모아보기 · /admin/about 소개 편집 · 구글 OAuth 연동 (이메일 화이트리스트) · /about 공개 · SEO/OG · 반응형 · 배포</div>
         </div>
       </div>
     </div>
@@ -1181,7 +1303,7 @@
   <!-- 17. 디자인 -->
   <section class="slide">
     <header class="slide-header">
-      <span class="slide-num">13</span>
+      <span class="slide-num">14</span>
       <h2 class="slide-title">디자인 시스템</h2>
       <span class="slide-sub">VISUAL</span>
     </header>
@@ -1222,7 +1344,7 @@
   <!-- 18. 특별한 점 -->
   <section class="slide">
     <header class="slide-header">
-      <span class="slide-num">14</span>
+      <span class="slide-num">15</span>
       <h2 class="slide-title">특별한 점</h2>
       <span class="slide-sub">WHY</span>
     </header>
