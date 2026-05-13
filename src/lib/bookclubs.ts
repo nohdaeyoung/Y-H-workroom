@@ -1,10 +1,11 @@
 import "server-only";
 import { getDb, getDbOrThrow } from "@/lib/firebase-admin";
-import type {
-  Bookclub,
-  BookclubStatus,
-  BookclubTranscriptLine,
-  UserId,
+import {
+  normalizeBookclubStatus,
+  type Bookclub,
+  type BookclubStatus,
+  type BookclubTranscriptLine,
+  type UserId,
 } from "@/types/domain";
 
 const COLLECTION = "bookclubs";
@@ -32,7 +33,7 @@ export async function listBookclubs(
       yImpression: null,
       hImpression: null,
       quotes: [],
-      status: "published" as BookclubStatus,
+      status: "met" as BookclubStatus,
       createdAt: Date.now(),
       publishedAt: Date.now(),
     }));
@@ -43,9 +44,13 @@ export async function listBookclubs(
     .orderBy("createdAt", "desc")
     .limit(200)
     .get();
-  let docs = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Bookclub));
+  let docs = snap.docs.map((d) => {
+    const raw = { id: d.id, ...d.data() } as Bookclub;
+    return { ...raw, status: normalizeBookclubStatus(raw.status) };
+  });
   if (!opts.includeDrafts) {
-    docs = docs.filter((b) => b.status === "published");
+    // 방문자: reading은 숨김. met/finished만 공개
+    docs = docs.filter((b) => b.status !== "reading");
   }
   return docs;
 }
@@ -69,7 +74,7 @@ export async function getBookclub(id: string): Promise<Bookclub | null> {
           yImpression: null,
           hImpression: null,
           quotes: [],
-          status: "published",
+          status: "met",
           createdAt: Date.now(),
           publishedAt: Date.now(),
         }
@@ -77,7 +82,8 @@ export async function getBookclub(id: string): Promise<Bookclub | null> {
   }
   const doc = await db.collection(COLLECTION).doc(id).get();
   if (!doc.exists) return null;
-  return { id: doc.id, ...doc.data() } as Bookclub;
+  const raw = { id: doc.id, ...doc.data() } as Bookclub;
+  return { ...raw, status: normalizeBookclubStatus(raw.status) };
 }
 
 export type CreateBookclubDraftInput = {
@@ -86,6 +92,7 @@ export type CreateBookclubDraftInput = {
   meetingDate: string;
   duration?: string;
   coverUrl?: string | null;
+  status?: BookclubStatus;
 };
 
 export async function createBookclubDraft(
@@ -93,6 +100,7 @@ export async function createBookclubDraft(
 ): Promise<Bookclub> {
   const db = getDbOrThrow();
   const now = Date.now();
+  const status: BookclubStatus = input.status ?? "reading";
   const data: Omit<Bookclub, "id"> = {
     bookTitle: input.bookTitle.trim(),
     bookAuthor: input.bookAuthor.trim(),
@@ -104,9 +112,9 @@ export async function createBookclubDraft(
     yImpression: null,
     hImpression: null,
     quotes: [],
-    status: "review",
+    status,
     createdAt: now,
-    publishedAt: null,
+    publishedAt: status === "reading" ? null : now,
   };
   const ref = await db.collection(COLLECTION).add(data);
   return { id: ref.id, ...data };
@@ -251,18 +259,21 @@ export async function updateBookclubTranscript(
   await db.collection(COLLECTION).doc(id).update({ transcript });
 }
 
-export async function publishBookclub(id: string): Promise<void> {
+export async function setBookclubStatus(
+  id: string,
+  status: BookclubStatus
+): Promise<void> {
   const db = getDbOrThrow();
-  await db
-    .collection(COLLECTION)
-    .doc(id)
-    .update({ status: "published", publishedAt: Date.now() });
+  const patch: Record<string, unknown> = { status };
+  if (status === "reading") patch.publishedAt = null;
+  else patch.publishedAt = Date.now();
+  await db.collection(COLLECTION).doc(id).update(patch);
+}
+
+export async function publishBookclub(id: string): Promise<void> {
+  await setBookclubStatus(id, "met");
 }
 
 export async function unpublishBookclub(id: string): Promise<void> {
-  const db = getDbOrThrow();
-  await db
-    .collection(COLLECTION)
-    .doc(id)
-    .update({ status: "review", publishedAt: null });
+  await setBookclubStatus(id, "reading");
 }

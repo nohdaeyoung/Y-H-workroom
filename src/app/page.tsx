@@ -164,7 +164,7 @@ export default async function HomePage() {
   const recent = activities.sort((a, b) => b.ts - a.ts).slice(0, 6);
 
   // 둘러보기 카운트
-  const publishedBookclubs = bookclubs.filter((b) => b.status === "published")
+  const publishedBookclubs = bookclubs.filter((b) => b.status !== "reading")
     .length;
   const completedPhotos = photostories.filter((p) => p.status === "completed")
     .length;

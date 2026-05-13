@@ -4,12 +4,8 @@ import { auth } from "@/auth";
 import { getBookclub } from "@/lib/bookclubs";
 import BookclubReviewClient from "@/components/BookclubReviewClient";
 import BookclubAudioUploader from "@/components/BookclubAudioUploader";
-import BookclubCoverUploader from "@/components/BookclubCoverUploader";
 import BookclubMetaForm from "@/components/BookclubMetaForm";
-import {
-  publishAction,
-  unpublishAction,
-} from "@/app/bookclub/actions";
+import BookclubStatusForm from "@/components/BookclubStatusForm";
 
 type Props = { params: { id: string } };
 
@@ -44,23 +40,7 @@ export default async function BookclubReviewPage({ params }: Props) {
             {b.bookAuthor} · {b.meetingDate}
           </div>
         </div>
-        <div className="row gap-8">
-          {b.status === "published" ? (
-            <form action={unpublishAction}>
-              <input type="hidden" name="id" value={b.id} />
-              <button type="submit" className="btn">
-                비공개로
-              </button>
-            </form>
-          ) : (
-            <form action={publishAction}>
-              <input type="hidden" name="id" value={b.id} />
-              <button type="submit" className="btn btn-primary">
-                공개하기
-              </button>
-            </form>
-          )}
-        </div>
+        <BookclubStatusForm id={b.id} status={b.status} />
       </div>
 
       <BookclubMetaForm
@@ -69,12 +49,7 @@ export default async function BookclubReviewPage({ params }: Props) {
         bookAuthor={b.bookAuthor}
         meetingDate={b.meetingDate}
         duration={b.duration}
-      />
-
-      <BookclubCoverUploader
-        bookclubId={b.id}
         initialCoverUrl={b.coverUrl}
-        bookTitle={b.bookTitle}
       />
 
       <BookclubAudioUploader

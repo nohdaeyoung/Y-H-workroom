@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { auth } from "@/auth";
 import { listBookclubs } from "@/lib/bookclubs";
-import type { Bookclub } from "@/types/domain";
+import { BOOKCLUB_STATUS_LABEL, type Bookclub } from "@/types/domain";
 
 export const metadata = { title: "독서모임 — 영희네 작업실" };
 export const dynamic = "force-dynamic";
@@ -79,10 +79,11 @@ function BookSpine({
 }
 
 function BookclubCard({ b }: { b: Bookclub }) {
-  const draft = b.status !== "published";
+  const chipClass =
+    b.status === "finished" ? "chip done" : b.status === "met" ? "chip" : "chip wait";
   return (
     <Link
-      href={draft ? `/bookclub/${b.id}/review` : `/bookclub/${b.id}`}
+      href={`/bookclub/${b.id}`}
       className="card lift"
       style={{ padding: "20px 22px" }}
     >
@@ -97,9 +98,7 @@ function BookclubCard({ b }: { b: Bookclub }) {
             <span className="hand" style={{ fontSize: 17, color: "var(--ink-3)" }}>
               독서모임 #{b.id.slice(-4)}
             </span>
-            {draft && (
-              <span className="chip wait">검수 중</span>
-            )}
+            <span className={chipClass}>{BOOKCLUB_STATUS_LABEL[b.status]}</span>
           </div>
           <h3 className="serif" style={{ fontSize: 20, marginTop: 2 }}>
             「{b.bookTitle}」
@@ -123,8 +122,8 @@ export default async function BookclubListPage() {
   const isYH = !!session?.user?.id;
   const items = await listBookclubs({ includeDrafts: isYH });
 
-  const published = items.filter((b) => b.status === "published");
-  const drafts = items.filter((b) => b.status !== "published");
+  const published = items.filter((b) => b.status !== "reading");
+  const drafts = items.filter((b) => b.status === "reading");
 
   return (
     <div className="container narrow fade-in" style={{ maxWidth: 760 }}>
@@ -148,7 +147,7 @@ export default async function BookclubListPage() {
       {isYH && drafts.length > 0 && (
         <>
           <h3 className="section-title" style={{ marginBottom: 12 }}>
-            검수 중
+            독서중
           </h3>
           <div className="col gap-16" style={{ marginBottom: 32 }}>
             {drafts.map((b) => (

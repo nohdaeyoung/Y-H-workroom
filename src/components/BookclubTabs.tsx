@@ -3,9 +3,9 @@
 import { useState } from "react";
 
 const TABS = [
-  { id: "record", label: "모임 기록", icon: "🎙" },
   { id: "impressions", label: "소감", icon: "📝" },
   { id: "quotes", label: "나만의 문장", icon: "📖" },
+  { id: "record", label: "모임 기록", icon: "🎙" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -19,7 +19,7 @@ export default function BookclubTabs({
   impressions: React.ReactNode;
   quotes: React.ReactNode;
 }) {
-  const [active, setActive] = useState<TabId>("record");
+  const [active, setActive] = useState<TabId>("impressions");
 
   return (
     <>

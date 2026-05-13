@@ -83,7 +83,22 @@ export type BookclubTranscriptLine = {
   text: string;
 };
 
-export type BookclubStatus = "processing" | "review" | "published";
+// reading: 독서중 (Y/H에만 보임) · met: 모임 완료 (공개) · finished: 완독 (공개)
+export type BookclubStatus = "reading" | "met" | "finished";
+
+export const BOOKCLUB_STATUS_LABEL: Record<BookclubStatus, string> = {
+  reading: "독서중",
+  met: "모임 완료",
+  finished: "완독",
+};
+
+// Legacy 호환: review → reading, published → met
+export function normalizeBookclubStatus(raw: unknown): BookclubStatus {
+  if (raw === "reading" || raw === "met" || raw === "finished") return raw;
+  if (raw === "review" || raw === "processing") return "reading";
+  if (raw === "published") return "met";
+  return "reading";
+}
 
 export type PhotostoryStatus = "waiting" | "completed";
 

@@ -10,13 +10,18 @@ import {
   deleteBookclubQuote,
   publishBookclub,
   setBookclubImpression,
+  setBookclubStatus,
   unpublishBookclub,
   updateBookclubCover,
   updateBookclubMeta,
   updateBookclubQuote,
   updateBookclubTranscript,
 } from "@/lib/bookclubs";
-import type { BookclubTranscriptLine, UserId } from "@/types/domain";
+import type {
+  BookclubStatus,
+  BookclubTranscriptLine,
+  UserId,
+} from "@/types/domain";
 
 export type BookclubActionState = { error: string; ok?: boolean };
 
@@ -34,6 +39,9 @@ export async function createDraftAction(
   const duration = String(formData.get("duration") ?? "").trim();
   const coverUrlRaw = String(formData.get("coverUrl") ?? "").trim();
   const coverUrl = coverUrlRaw.startsWith("http") ? coverUrlRaw : null;
+  const statusRaw = String(formData.get("status") ?? "reading");
+  const status: BookclubStatus =
+    statusRaw === "met" || statusRaw === "finished" ? statusRaw : "reading";
 
   if (!bookTitle || !bookAuthor || !meetingDate) {
     return { error: "책 제목, 저자, 모임 날짜를 모두 적어주세요" };
@@ -47,6 +55,7 @@ export async function createDraftAction(
       meetingDate,
       duration,
       coverUrl,
+      status,
     });
     id = b.id;
   } catch (err) {
@@ -55,6 +64,24 @@ export async function createDraftAction(
   }
   revalidatePath("/bookclub");
   redirect(`/bookclub/${id}/review`);
+}
+
+export async function setStatusAction(formData: FormData) {
+  "use server";
+  const session = await auth();
+  const uid = session?.user?.id;
+  if (uid !== "Y" && uid !== "H") return;
+  const id = String(formData.get("id") ?? "");
+  const statusRaw = String(formData.get("status") ?? "");
+  if (!id) return;
+  const status: BookclubStatus =
+    statusRaw === "reading" || statusRaw === "met" || statusRaw === "finished"
+      ? statusRaw
+      : "reading";
+  await setBookclubStatus(id, status);
+  revalidatePath(`/bookclub/${id}`);
+  revalidatePath(`/bookclub/${id}/review`);
+  revalidatePath("/bookclub");
 }
 
 export async function saveTranscriptAction(

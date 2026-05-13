@@ -73,10 +73,10 @@ export async function toggleVisibilityAction(formData: FormData) {
     const doc = await db.collection("bookclubs").doc(id).get();
     if (!doc.exists) return;
     const status = doc.data()?.status;
-    const next = status === "published" ? "review" : "published";
+    const next = status === "reading" ? "met" : "reading";
     await db.collection("bookclubs").doc(id).update({
       status: next,
-      publishedAt: next === "published" ? Date.now() : null,
+      publishedAt: next === "reading" ? null : Date.now(),
     });
     revalidatePath("/bookclub");
   }

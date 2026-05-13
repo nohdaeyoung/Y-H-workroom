@@ -7,6 +7,9 @@ import {
   createDraftAction,
   type BookclubActionState,
 } from "@/app/bookclub/actions";
+import { BOOKCLUB_STATUS_LABEL, type BookclubStatus } from "@/types/domain";
+
+const STATUS_ORDER: BookclubStatus[] = ["reading", "met", "finished"];
 
 const initial: BookclubActionState = { error: "" };
 
@@ -47,6 +50,7 @@ export default function BookclubNewForm() {
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [coverError, setCoverError] = useState<string | null>(null);
+  const [status, setStatus] = useState<BookclubStatus>("reading");
 
   async function pickAndUpload(file: File) {
     setCoverError(null);
@@ -66,6 +70,7 @@ export default function BookclubNewForm() {
   return (
     <form action={action} className="card">
       <input type="hidden" name="coverUrl" value={coverUrl ?? ""} />
+      <input type="hidden" name="status" value={status} />
 
       <label className="label">책 커버 (선택)</label>
       <div className="row gap-16" style={{ alignItems: "flex-start" }}>
@@ -184,6 +189,29 @@ export default function BookclubNewForm() {
             placeholder="1시간 23분"
           />
         </div>
+      </div>
+
+      <label className="label" style={{ marginTop: 18 }}>
+        상태
+      </label>
+      <div className="row gap-8" style={{ flexWrap: "wrap" }}>
+        {STATUS_ORDER.map((s) => {
+          const active = s === status;
+          return (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setStatus(s)}
+              className={active ? "btn btn-primary btn-sm" : "btn btn-sm"}
+              style={{ fontSize: 13 }}
+            >
+              {BOOKCLUB_STATUS_LABEL[s]}
+            </button>
+          );
+        })}
+      </div>
+      <div className="meta" style={{ fontSize: 11, marginTop: 6 }}>
+        독서중은 방문자에게 보이지 않아요
       </div>
 
       {state.error && (

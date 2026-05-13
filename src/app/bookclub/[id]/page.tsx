@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { getBookclub } from "@/lib/bookclubs";
 import BookclubAudio from "@/components/BookclubAudio";
@@ -23,10 +23,7 @@ export default async function BookclubDetailPage({ params }: Props) {
   const uid = session?.user?.id;
   const isYH = uid === "Y" || uid === "H";
 
-  if (b.status !== "published") {
-    if (isYH) redirect(`/bookclub/${b.id}/review`);
-    notFound();
-  }
+  if (b.status === "reading" && !isYH) notFound();
 
   const recordTab = (
     <div
@@ -172,7 +169,7 @@ export default async function BookclubDetailPage({ params }: Props) {
   );
 
   return (
-    <div className="container narrow fade-in" style={{ maxWidth: 720 }}>
+    <div className="container narrow fade-in" style={{ maxWidth: 880 }}>
       <div className="row-between" style={{ marginBottom: 20 }}>
         <Link href="/bookclub" className="btn btn-ghost btn-sm">
           ← 독서모임 목록

@@ -97,10 +97,10 @@ async function getItems(section: Section, uid: UserId): Promise<ListItem[]> {
       id: b.id,
       title: `「${b.bookTitle}」`,
       excerpt: b.bookAuthor,
-      status: b.status === "published" ? "published" : "draft",
+      status: b.status !== "reading" ? "published" : "draft",
       dateLabel: b.meetingDate,
       comments: 0,
-      href: b.status === "published" ? `/bookclub/${b.id}` : `/bookclub/${b.id}/review`,
+      href: b.status !== "reading" ? `/bookclub/${b.id}` : `/bookclub/${b.id}/review`,
       editHref: `/bookclub/${b.id}/review`,
       canToggle: true,
     }));
