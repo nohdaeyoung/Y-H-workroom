@@ -4,6 +4,7 @@ import type {
   Bookclub,
   BookclubStatus,
   BookclubTranscriptLine,
+  UserId,
 } from "@/types/domain";
 
 const COLLECTION = "bookclubs";
@@ -28,6 +29,9 @@ export async function listBookclubs(
       coverUrl: null,
       audioUrl: null,
       transcript: m.transcript,
+      yImpression: null,
+      hImpression: null,
+      quotes: [],
       status: "published" as BookclubStatus,
       createdAt: Date.now(),
       publishedAt: Date.now(),
@@ -62,6 +66,9 @@ export async function getBookclub(id: string): Promise<Bookclub | null> {
           coverUrl: null,
           audioUrl: null,
           transcript: m.transcript,
+          yImpression: null,
+          hImpression: null,
+          quotes: [],
           status: "published",
           createdAt: Date.now(),
           publishedAt: Date.now(),
@@ -94,6 +101,9 @@ export async function createBookclubDraft(
     coverUrl: input.coverUrl ?? null,
     audioUrl: null,
     transcript: [],
+    yImpression: null,
+    hImpression: null,
+    quotes: [],
     status: "review",
     createdAt: now,
     publishedAt: null,
@@ -133,6 +143,104 @@ export async function updateBookclubMeta(
     update.duration = patch.duration.trim().slice(0, 50);
   if (Object.keys(update).length === 0) return;
   await db.collection(COLLECTION).doc(id).update(update);
+}
+
+// —— 소감 ——
+export async function setBookclubImpression(
+  id: string,
+  author: UserId,
+  impression: { title: string; content: string } | null
+): Promise<{ ok: boolean; error?: string }> {
+  const db = getDbOrThrow();
+  const ref = db.collection(COLLECTION).doc(id);
+  const doc = await ref.get();
+  if (!doc.exists) return { ok: false, error: "찾을 수 없어요" };
+
+  let next: import("@/types/domain").BookclubImpression | null = null;
+  if (impression) {
+    const title = impression.title.trim().slice(0, 200);
+    const content = impression.content.slice(0, 20000);
+    const plain = content.replace(/<[^>]+>/g, "").trim();
+    if (!title) return { ok: false, error: "제목을 적어주세요" };
+    if (!plain) return { ok: false, error: "본문을 적어주세요" };
+    next = { title, content, writtenAt: Date.now() };
+  }
+  const field = author === "Y" ? "yImpression" : "hImpression";
+  await ref.update({ [field]: next });
+  return { ok: true };
+}
+
+// —— 인용 문장 ——
+export async function addBookclubQuote(
+  id: string,
+  author: UserId,
+  text: string,
+  source: string
+): Promise<{ ok: boolean; error?: string }> {
+  const db = getDbOrThrow();
+  const ref = db.collection(COLLECTION).doc(id);
+  const doc = await ref.get();
+  if (!doc.exists) return { ok: false, error: "찾을 수 없어요" };
+  const t = text.trim();
+  if (!t) return { ok: false, error: "문장을 적어주세요" };
+  if (t.length > 2000) return { ok: false, error: "문장이 너무 길어요" };
+  const data = doc.data() as Bookclub;
+  const quote: import("@/types/domain").BookclubQuote = {
+    id: `q-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    author,
+    text: t,
+    source: source.trim().slice(0, 100),
+    createdAt: Date.now(),
+  };
+  const quotes = [...(data.quotes ?? []), quote];
+  await ref.update({ quotes });
+  return { ok: true };
+}
+
+export async function updateBookclubQuote(
+  id: string,
+  quoteId: string,
+  author: UserId,
+  text: string,
+  source: string
+): Promise<{ ok: boolean; error?: string }> {
+  const db = getDbOrThrow();
+  const ref = db.collection(COLLECTION).doc(id);
+  const doc = await ref.get();
+  if (!doc.exists) return { ok: false, error: "찾을 수 없어요" };
+  const data = doc.data() as Bookclub;
+  const quotes = [...(data.quotes ?? [])];
+  const idx = quotes.findIndex((q) => q.id === quoteId);
+  if (idx < 0) return { ok: false, error: "문장을 찾을 수 없어요" };
+  if (quotes[idx].author !== author)
+    return { ok: false, error: "본인 문장만 수정할 수 있어요" };
+  const t = text.trim();
+  if (!t) return { ok: false, error: "문장을 적어주세요" };
+  quotes[idx] = {
+    ...quotes[idx],
+    text: t.slice(0, 2000),
+    source: source.trim().slice(0, 100),
+  };
+  await ref.update({ quotes });
+  return { ok: true };
+}
+
+export async function deleteBookclubQuote(
+  id: string,
+  quoteId: string,
+  author: UserId
+): Promise<{ ok: boolean; error?: string }> {
+  const db = getDbOrThrow();
+  const ref = db.collection(COLLECTION).doc(id);
+  const doc = await ref.get();
+  if (!doc.exists) return { ok: false, error: "찾을 수 없어요" };
+  const data = doc.data() as Bookclub;
+  const quotes = (data.quotes ?? []).filter((q) => {
+    if (q.id !== quoteId) return true;
+    return q.author !== author; // 본인 문장만 삭제
+  });
+  await ref.update({ quotes });
+  return { ok: true };
 }
 
 export async function updateBookclubTranscript(

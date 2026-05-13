@@ -3,12 +3,17 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
+import DOMPurify from "isomorphic-dompurify";
 import {
+  addBookclubQuote,
   createBookclubDraft,
+  deleteBookclubQuote,
   publishBookclub,
+  setBookclubImpression,
   unpublishBookclub,
   updateBookclubCover,
   updateBookclubMeta,
+  updateBookclubQuote,
   updateBookclubTranscript,
 } from "@/lib/bookclubs";
 import type { BookclubTranscriptLine, UserId } from "@/types/domain";
@@ -154,4 +159,83 @@ export async function unpublishAction(formData: FormData) {
   await unpublishBookclub(id);
   revalidatePath(`/bookclub/${id}`);
   revalidatePath("/bookclub");
+}
+
+// —— 소감 ——
+export async function saveImpressionAction(
+  _prev: BookclubActionState,
+  formData: FormData
+): Promise<BookclubActionState> {
+  const session = await auth();
+  const author = session?.user?.id;
+  if (author !== "Y" && author !== "H") return { error: "로그인이 필요해요" };
+  const id = String(formData.get("id") ?? "");
+  const title = String(formData.get("title") ?? "");
+  const content = DOMPurify.sanitize(String(formData.get("content") ?? ""), {
+    USE_PROFILES: { html: true },
+  });
+  if (!id) return { error: "잘못된 요청" };
+  const res = await setBookclubImpression(id, author, { title, content });
+  if (!res.ok) return { error: res.error ?? "저장 실패" };
+  revalidatePath(`/bookclub/${id}`);
+  return { error: "", ok: true };
+}
+
+export async function deleteImpressionAction(formData: FormData) {
+  "use server";
+  const session = await auth();
+  const author = session?.user?.id;
+  if (author !== "Y" && author !== "H") return;
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+  await setBookclubImpression(id, author, null);
+  revalidatePath(`/bookclub/${id}`);
+}
+
+// —— 인용 문장 ——
+export async function addQuoteAction(
+  _prev: BookclubActionState,
+  formData: FormData
+): Promise<BookclubActionState> {
+  const session = await auth();
+  const author = session?.user?.id;
+  if (author !== "Y" && author !== "H") return { error: "로그인이 필요해요" };
+  const id = String(formData.get("id") ?? "");
+  const text = String(formData.get("text") ?? "");
+  const source = String(formData.get("source") ?? "");
+  if (!id) return { error: "잘못된 요청" };
+  const res = await addBookclubQuote(id, author, text, source);
+  if (!res.ok) return { error: res.error ?? "추가 실패" };
+  revalidatePath(`/bookclub/${id}`);
+  return { error: "", ok: true };
+}
+
+export async function updateQuoteAction(
+  _prev: BookclubActionState,
+  formData: FormData
+): Promise<BookclubActionState> {
+  const session = await auth();
+  const author = session?.user?.id;
+  if (author !== "Y" && author !== "H") return { error: "로그인이 필요해요" };
+  const id = String(formData.get("id") ?? "");
+  const quoteId = String(formData.get("quoteId") ?? "");
+  const text = String(formData.get("text") ?? "");
+  const source = String(formData.get("source") ?? "");
+  if (!id || !quoteId) return { error: "잘못된 요청" };
+  const res = await updateBookclubQuote(id, quoteId, author, text, source);
+  if (!res.ok) return { error: res.error ?? "수정 실패" };
+  revalidatePath(`/bookclub/${id}`);
+  return { error: "", ok: true };
+}
+
+export async function deleteQuoteAction(formData: FormData) {
+  "use server";
+  const session = await auth();
+  const author = session?.user?.id;
+  if (author !== "Y" && author !== "H") return;
+  const id = String(formData.get("id") ?? "");
+  const quoteId = String(formData.get("quoteId") ?? "");
+  if (!id || !quoteId) return;
+  await deleteBookclubQuote(id, quoteId, author);
+  revalidatePath(`/bookclub/${id}`);
 }

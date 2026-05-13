@@ -114,6 +114,20 @@ export type AboutContent = {
   publishedAt: number | null;
 };
 
+export type BookclubImpression = {
+  title: string;
+  content: string; // HTML (RichEditor)
+  writtenAt: number;
+};
+
+export type BookclubQuote = {
+  id: string;
+  author: UserId;
+  text: string;
+  source: string;
+  createdAt: number;
+};
+
 export type Bookclub = {
   id: string;
   bookTitle: string;
@@ -123,6 +137,9 @@ export type Bookclub = {
   coverUrl: string | null;
   audioUrl: string | null;
   transcript: BookclubTranscriptLine[];
+  yImpression: BookclubImpression | null;
+  hImpression: BookclubImpression | null;
+  quotes: BookclubQuote[];
   status: BookclubStatus;
   createdAt: number;
   publishedAt: number | null;
