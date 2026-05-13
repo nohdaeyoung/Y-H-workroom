@@ -3,6 +3,7 @@ import { cert, getApps, initializeApp, type App } from "firebase-admin/app";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 
 let cachedApp: App | null = null;
+let cachedDb: Firestore | null = null;
 
 function getApp(): App | null {
   if (cachedApp) return cachedApp;
@@ -33,9 +34,19 @@ function getApp(): App | null {
 }
 
 export function getDb(): Firestore | null {
+  if (cachedDb) return cachedDb;
   const app = getApp();
   if (!app) return null;
-  return getFirestore(app);
+  const db = getFirestore(app);
+  // undefined 필드 무시 — optional 필드(excerpt, tags 등) 누락 시에도 저장 가능
+  // settings는 한 번만 적용 가능 → hot reload 시 중복 호출 무시
+  try {
+    db.settings({ ignoreUndefinedProperties: true });
+  } catch {
+    // already configured
+  }
+  cachedDb = db;
+  return cachedDb;
 }
 
 export function getDbOrThrow(): Firestore {
