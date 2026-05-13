@@ -435,6 +435,8 @@ a.card { color: inherit; text-decoration: none; }
   .essay-mobile-tabs { display: flex; }
   [data-essay-mobile-tab="y"] .essay-pane-h { display: none; }
   [data-essay-mobile-tab="h"] .essay-pane-y { display: none; }
+  [data-keyword-mobile-tab="y"] .keyword-pane-h { display: none; }
+  [data-keyword-mobile-tab="h"] .keyword-pane-y { display: none; }
 }
 
 ::selection { background: var(--y-soft); color: var(--ink); }

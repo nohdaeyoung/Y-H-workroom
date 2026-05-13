@@ -1,14 +1,15 @@
-import PageScaffold from "@/components/PageScaffold";
+import { auth } from "@/auth";
+import { MOCK_PHOTOSTORIES } from "@/lib/mock-photostories";
+import PhotostoryListClient from "@/components/PhotostoryListClient";
 
 export const metadata = { title: "사진+글 — 영희네 작업실" };
 
-export default function PhotostoryPage() {
+export default async function PhotostoryListPage() {
+  const session = await auth();
   return (
-    <PageScaffold
-      icon="📷"
-      title="사진+글"
-      subtitle="한 사람이 찍고, 한 사람이 쓰다"
-      phase="Phase 5"
+    <PhotostoryListClient
+      items={MOCK_PHOTOSTORIES}
+      canUpload={!!session?.user?.id}
     />
   );
 }
