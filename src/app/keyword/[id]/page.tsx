@@ -32,13 +32,19 @@ export default async function KeywordDetailPage({ params }: Props) {
 
   return (
     <div className="container fade-in" style={{ maxWidth: 1080 }}>
-      <Link
-        href="/keyword"
-        className="btn btn-ghost btn-sm"
-        style={{ marginBottom: 20 }}
-      >
-        ← 키워드 목록
-      </Link>
+      <div className="row-between" style={{ marginBottom: 20 }}>
+        <Link href="/keyword" className="btn btn-ghost btn-sm">
+          ← 키워드 목록
+        </Link>
+        {isYH && (
+          <Link
+            href={`/keyword/${k.id}/edit`}
+            className="btn btn-ghost btn-sm"
+          >
+            ✎ 수정
+          </Link>
+        )}
+      </div>
 
       <div
         className="card"

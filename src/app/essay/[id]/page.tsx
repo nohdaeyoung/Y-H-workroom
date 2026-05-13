@@ -28,13 +28,19 @@ export default async function EssayDetailPage({ params }: Props) {
 
   return (
     <div className="container narrow fade-in" style={{ maxWidth: 680 }}>
-      <Link
-        href="/essay"
-        className="btn btn-ghost btn-sm"
-        style={{ marginBottom: 24 }}
-      >
-        ← 나란히 보기로
-      </Link>
+      <div className="row-between" style={{ marginBottom: 24 }}>
+        <Link href="/essay" className="btn btn-ghost btn-sm">
+          ← 나란히 보기로
+        </Link>
+        {session?.user?.id === essay.author && (
+          <Link
+            href={`/essay/${essay.id}/edit`}
+            className="btn btn-ghost btn-sm"
+          >
+            ✎ 수정
+          </Link>
+        )}
+      </div>
 
       <div style={{ textAlign: "center", padding: "20px 0 32px" }}>
         <div

@@ -27,9 +27,19 @@ export default async function BookclubDetailPage({ params }: Props) {
 
   return (
     <div className="container narrow fade-in" style={{ maxWidth: 720 }}>
-      <Link href="/bookclub" className="btn btn-ghost btn-sm" style={{ marginBottom: 20 }}>
-        ← 독서모임 목록
-      </Link>
+      <div className="row-between" style={{ marginBottom: 20 }}>
+        <Link href="/bookclub" className="btn btn-ghost btn-sm">
+          ← 독서모임 목록
+        </Link>
+        {isYH && (
+          <Link
+            href={`/bookclub/${b.id}/review`}
+            className="btn btn-ghost btn-sm"
+          >
+            ✎ 수정
+          </Link>
+        )}
+      </div>
 
       {/* 책 헤더 */}
       <div className="card" style={{ padding: "24px 24px 28px", marginBottom: 16 }}>

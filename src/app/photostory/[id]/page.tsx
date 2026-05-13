@@ -39,13 +39,19 @@ export default async function PhotostoryDetailPage({ params }: Props) {
 
   return (
     <div className="container narrow fade-in" style={{ maxWidth: 740 }}>
-      <Link
-        href="/photostory"
-        className="btn btn-ghost btn-sm"
-        style={{ marginBottom: 20 }}
-      >
-        ← 갤러리
-      </Link>
+      <div className="row-between" style={{ marginBottom: 20 }}>
+        <Link href="/photostory" className="btn btn-ghost btn-sm">
+          ← 갤러리
+        </Link>
+        {(uid === p.photoAuthor || uid === p.textAuthor) && (
+          <Link
+            href={`/photostory/${p.id}/edit`}
+            className="btn btn-ghost btn-sm"
+          >
+            ✎ 수정
+          </Link>
+        )}
+      </div>
 
       <PhotoSlider photos={p.photos} fallbackHue={60} />
 

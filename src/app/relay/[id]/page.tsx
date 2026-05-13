@@ -33,13 +33,19 @@ export default async function RelayDetailPage({ params }: Props) {
 
   return (
     <div className="container narrow fade-in" style={{ maxWidth: 680 }}>
-      <Link
-        href="/relay"
-        className="btn btn-ghost btn-sm"
-        style={{ marginBottom: 20 }}
-      >
-        ← 이어쓰기 목록
-      </Link>
+      <div className="row-between" style={{ marginBottom: 20 }}>
+        <Link href="/relay" className="btn btn-ghost btn-sm">
+          ← 이어쓰기 목록
+        </Link>
+        {isYH && (
+          <Link
+            href={`/relay/${relay.id}/edit`}
+            className="btn btn-ghost btn-sm"
+          >
+            ✎ 수정
+          </Link>
+        )}
+      </div>
 
       <div style={{ textAlign: "center", padding: "12px 0 28px" }}>
         <div className="hand" style={{ fontSize: 20, color: "var(--ink-3)" }}>
