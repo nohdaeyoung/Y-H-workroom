@@ -77,6 +77,21 @@ export type BookclubTranscriptLine = {
 
 export type BookclubStatus = "processing" | "review" | "published";
 
+export type PhotostoryStatus = "waiting" | "completed";
+
+export type Photostory = {
+  id: string;
+  photoAuthor: UserId;
+  textAuthor: UserId;
+  photoTitle: string;
+  photos: string[]; // R2 public URLs
+  photoUploadedAt: number;
+  text: string | null; // HTML
+  textWrittenAt: number | null;
+  status: PhotostoryStatus;
+  createdAt: number;
+};
+
 export type Bookclub = {
   id: string;
   bookTitle: string;

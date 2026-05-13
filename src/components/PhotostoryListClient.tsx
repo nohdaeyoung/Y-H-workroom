@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import PhotoPlaceholder from "./PhotoPlaceholder";
-import type { Photostory } from "@/lib/mock-photostories";
+import type { Photostory } from "@/types/domain";
 
 type Filter = "all" | "h2y" | "y2h";
 
@@ -15,10 +15,16 @@ const FILTERS: { id: Filter; label: string }[] = [
 
 const HEIGHTS = [240, 280, 220, 300, 260];
 
+function formatShort(ts: number) {
+  const d = new Date(ts);
+  return `${d.getMonth() + 1}/${d.getDate()}`;
+}
+
 function PhotoCard({ story, idx }: { story: Photostory; idx: number }) {
   const waiting = story.status === "waiting";
   const h = HEIGHTS[idx % HEIGHTS.length];
   const name = story.textAuthor === "Y" ? "대영" : "희서";
+  const firstPhoto = story.photos[0];
 
   return (
     <Link
@@ -32,9 +38,17 @@ function PhotoCard({ story, idx }: { story: Photostory; idx: number }) {
         border: "1px solid var(--line)",
       }}
     >
-      <div style={{ position: "relative" }}>
-        <PhotoPlaceholder hue={story.photoHue} height={h} idx={idx} />
-        {story.photoCount > 1 && (
+      <div style={{ position: "relative", height: h, overflow: "hidden" }}>
+        {firstPhoto ? (
+          <img
+            src={firstPhoto}
+            alt={story.photoTitle}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        ) : (
+          <PhotoPlaceholder hue={(idx * 47) % 360} height={h} idx={idx} />
+        )}
+        {story.photos.length > 1 && (
           <div
             style={{
               position: "absolute",
@@ -47,7 +61,7 @@ function PhotoCard({ story, idx }: { story: Photostory; idx: number }) {
               borderRadius: "var(--r-pill)",
             }}
           >
-            📷 {story.photoCount}
+            📷 {story.photos.length}
           </div>
         )}
         {waiting && (
@@ -94,7 +108,7 @@ function PhotoCard({ story, idx }: { story: Photostory; idx: number }) {
             ✍️ {story.textAuthor}
           </span>
           <span style={{ marginLeft: "auto" }}>
-            {story.photoUploadedAt.slice(5)}
+            {formatShort(story.photoUploadedAt)}
           </span>
         </div>
         <h3 className="serif" style={{ fontSize: 17, marginTop: 8, lineHeight: 1.4 }}>
@@ -114,7 +128,7 @@ function PhotoCard({ story, idx }: { story: Photostory; idx: number }) {
               overflow: "hidden",
             }}
           >
-            {story.text.split("\n")[0]}
+            {story.text.replace(/<[^>]+>/g, "").slice(0, 120)}
           </p>
         )}
       </div>
@@ -186,23 +200,29 @@ export default function PhotostoryListClient({
           ))}
         </div>
         {canUpload && (
-          <button type="button" className="btn btn-primary" disabled title="Phase 5">
+          <Link href="/photostory/new" className="btn btn-primary">
             <span>📷</span> 사진 올리기
-          </button>
+          </Link>
         )}
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-          gap: 20,
-        }}
-      >
-        {filtered.map((p, idx) => (
-          <PhotoCard key={p.id} story={p} idx={idx} />
-        ))}
-      </div>
+      {filtered.length === 0 ? (
+        <div className="card-flat center" style={{ padding: 60, color: "var(--ink-3)" }}>
+          <span className="hand" style={{ fontSize: 20 }}>아직 비어 있어요</span>
+        </div>
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gap: 20,
+          }}
+        >
+          {filtered.map((p, idx) => (
+            <PhotoCard key={p.id} story={p} idx={idx} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

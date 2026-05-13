@@ -4,19 +4,38 @@ import { useState } from "react";
 import PhotoPlaceholder from "./PhotoPlaceholder";
 
 export default function PhotoSlider({
-  hue,
-  count,
+  photos,
+  fallbackHue = 60,
   height = 460,
 }: {
-  hue: number;
-  count: number;
+  photos: string[];
+  fallbackHue?: number;
   height?: number;
 }) {
   const [active, setActive] = useState(0);
+  const hasPhotos = photos.length > 0;
+  const count = hasPhotos ? photos.length : 1;
 
   return (
     <div>
-      <PhotoPlaceholder hue={hue} height={height} idx={active} />
+      <div
+        style={{
+          height,
+          borderRadius: "var(--r-md)",
+          overflow: "hidden",
+          background: "var(--paper-ink)",
+        }}
+      >
+        {hasPhotos ? (
+          <img
+            src={photos[active]}
+            alt={`사진 ${active + 1}`}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        ) : (
+          <PhotoPlaceholder hue={fallbackHue} height={height} idx={active} />
+        )}
+      </div>
       {count > 1 && (
         <div
           className="row gap-8"

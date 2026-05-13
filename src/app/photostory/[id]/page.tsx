@@ -1,22 +1,28 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
-import { getPhotostory } from "@/lib/mock-photostories";
+import { getPhotostory } from "@/lib/photostories";
 import PhotoSlider from "@/components/PhotoSlider";
+import PhotostoryWriteButton from "@/components/PhotostoryWriteButton";
 import Comments from "@/components/Comments";
+import SafeHtml from "@/components/SafeHtml";
 
 type Props = { params: { id: string } };
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ params }: Props) {
-  const p = getPhotostory(params.id);
+  const p = await getPhotostory(params.id);
   return { title: p ? `${p.photoTitle} — 사진+글` : "사진+글" };
 }
 
+function formatDate(ts: number) {
+  const d = new Date(ts);
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export default async function PhotostoryDetailPage({ params }: Props) {
-  const [p, session] = await Promise.all([
-    getPhotostory(params.id),
-    auth(),
-  ]);
+  const [p, session] = await Promise.all([getPhotostory(params.id), auth()]);
   if (!p) notFound();
 
   const uid = session?.user?.id;
@@ -41,9 +47,8 @@ export default async function PhotostoryDetailPage({ params }: Props) {
         ← 갤러리
       </Link>
 
-      <PhotoSlider hue={p.photoHue} count={p.photoCount} />
+      <PhotoSlider photos={p.photos} fallbackHue={60} />
 
-      {/* 사진 정보 */}
       <div
         className="row-between"
         style={{ marginTop: 20, marginBottom: 28, flexWrap: "wrap", gap: 12 }}
@@ -52,11 +57,8 @@ export default async function PhotostoryDetailPage({ params }: Props) {
           <span className={`avatar-mini ${photoAuthorCls}`}>{p.photoAuthor}</span>
           <div>
             <div style={{ fontSize: 13, color: "var(--ink-3)" }}>📸 사진</div>
-            <div
-              className="hand"
-              style={{ fontSize: 17, color: photoDeep }}
-            >
-              {photoName} · {p.photoUploadedAt}
+            <div className="hand" style={{ fontSize: 17, color: photoDeep }}>
+              {photoName} · {formatDate(p.photoUploadedAt)}
             </div>
           </div>
         </div>
@@ -70,7 +72,6 @@ export default async function PhotostoryDetailPage({ params }: Props) {
         )}
       </div>
 
-      {/* 글 영역 */}
       {p.status === "completed" && p.text ? (
         <div
           className="card"
@@ -89,20 +90,12 @@ export default async function PhotostoryDetailPage({ params }: Props) {
             <div>
               <div style={{ fontSize: 13, color: "var(--ink-3)" }}>✍️ 글</div>
               <div className="hand" style={{ fontSize: 17, color: textDeep }}>
-                {textName} · {p.textWrittenAt}
+                {textName}
+                {p.textWrittenAt && ` · ${formatDate(p.textWrittenAt)}`}
               </div>
             </div>
           </div>
-          <div
-            className="prose"
-            style={{
-              fontSize: 18,
-              lineHeight: 2,
-              whiteSpace: "pre-line",
-            }}
-          >
-            {p.text}
-          </div>
+          <SafeHtml html={p.text} className="prose" />
         </div>
       ) : (
         <div
@@ -115,24 +108,20 @@ export default async function PhotostoryDetailPage({ params }: Props) {
         >
           <div style={{ fontSize: 36, opacity: 0.5 }}>✍️</div>
           <div className="serif" style={{ fontSize: 18, marginTop: 12 }}>
-            <span style={{ color: textDeep, fontWeight: 600 }}>
-              {textName}
-            </span>
+            <span style={{ color: textDeep, fontWeight: 600 }}>{textName}</span>
             의 글을 기다리고 있어요
           </div>
           <div className="meta" style={{ marginTop: 6 }}>
             {p.photoAuthor}가(이) 올린 사진에 어울리는 글이 채워지면 공개됩니다.
           </div>
           {canWrite && (
-            <button
-              className="btn btn-primary"
-              style={{ marginTop: 16 }}
-              type="button"
-              disabled
-              title="Phase 5"
-            >
-              ✎ 글 쓰러 가기 (Phase 5)
-            </button>
+            <div style={{ marginTop: 16 }}>
+              <PhotostoryWriteButton
+                photostoryId={p.id}
+                photoTitle={p.photoTitle}
+                photoUrl={p.photos[0]}
+              />
+            </div>
           )}
         </div>
       )}
