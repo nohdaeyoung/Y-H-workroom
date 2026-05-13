@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth, isGoogleEnabled } from "@/auth";
-import { googleSignInAction, logoutAction } from "@/app/login/actions";
+import { logoutAction } from "@/app/login/actions";
+import { getUserProfile } from "@/lib/user-profile";
 import AdminAccountClient from "@/components/AdminAccountClient";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = { title: "계정 설정 — 어드민" };
 
@@ -13,6 +16,7 @@ export default async function AdminAccountPage() {
 
   const name = id === "Y" ? "대영" : "희서";
   const cls = id === "Y" ? "y" : "h";
+  const profile = await getUserProfile(id);
 
   return (
     <div className="container narrow fade-in" style={{ maxWidth: 680 }}>
@@ -33,7 +37,8 @@ export default async function AdminAccountPage() {
 
       <AdminAccountClient
         userId={id}
-        userName={name}
+        userName={profile.displayName || name}
+        userDesc={profile.desc}
         userCls={cls}
         googleEnabled={isGoogleEnabled()}
         userEmail={session?.user?.email ?? ""}

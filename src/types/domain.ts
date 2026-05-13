@@ -1,5 +1,13 @@
 export type UserId = "Y" | "H";
 
+export type UserProfile = {
+  id: UserId;
+  displayName: string;
+  desc: string;
+  passwordHash: string | null; // Firestore 우선, null이면 env 시드 fallback
+  updatedAt: number;
+};
+
 export type EssayStatus = "draft" | "published" | "private";
 
 export type Essay = {

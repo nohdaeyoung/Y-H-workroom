@@ -4,6 +4,7 @@ import Google from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { authConfig } from "@/auth.config";
 import { getUserById } from "@/lib/users";
+import { getUserProfile, resolvePasswordHash } from "@/lib/user-profile";
 
 const providers = [
   Credentials({
@@ -21,15 +22,27 @@ const providers = [
       if (!id || !password) return null;
 
       const user = getUserById(id);
-      if (!user || !user.passwordHash) return null;
+      if (!user) return null;
 
-      const valid = await bcrypt.compare(password, user.passwordHash);
+      // Firestore에 저장된 해시 우선, 없으면 env 시드
+      const hash = await resolvePasswordHash(user.id);
+      if (!hash) return null;
+      const valid = await bcrypt.compare(password, hash);
       if (!valid) return null;
+
+      // displayName도 Firestore 우선
+      let displayName = user.displayName;
+      try {
+        const profile = await getUserProfile(user.id);
+        if (profile.displayName) displayName = profile.displayName;
+      } catch {
+        // Firestore 미설정이면 env 시드 그대로
+      }
 
       return {
         id: user.id,
         name: user.name,
-        displayName: user.displayName,
+        displayName,
         email: user.email || undefined,
       };
     },
