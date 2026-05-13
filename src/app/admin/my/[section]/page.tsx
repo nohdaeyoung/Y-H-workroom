@@ -2,11 +2,12 @@ import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { listEssays } from "@/lib/essays";
-import { MOCK_RELAYS } from "@/lib/mock-relays";
-import { MOCK_KEYWORDS } from "@/lib/mock-keywords";
-import { MOCK_BOOKCLUBS } from "@/lib/mock-bookclubs";
-import { MOCK_PHOTOSTORIES } from "@/lib/mock-photostories";
+import { listRelays } from "@/lib/relays";
+import { listKeywords } from "@/lib/keywords";
+import { listBookclubs } from "@/lib/bookclubs";
+import { listPhotostories } from "@/lib/photostories";
 import type { UserId } from "@/types/domain";
+import AdminMyItemActions from "@/components/AdminMyItemActions";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,8 @@ type ListItem = {
   dateLabel: string;
   comments: number;
   href: string;
+  editHref?: string;
+  canToggle?: boolean;
 };
 
 async function getItems(section: Section, uid: UserId): Promise<ListItem[]> {
@@ -53,13 +56,16 @@ async function getItems(section: Section, uid: UserId): Promise<ListItem[]> {
       dateLabel: formatDate(e.createdAt),
       comments: 0,
       href: `/essay/${e.id}`,
+      editHref: `/essay/${e.id}/edit`,
+      canToggle: true,
     }));
   }
   if (section === "relay") {
-    return MOCK_RELAYS.map((r) => ({
+    const all = await listRelays();
+    return all.map((r) => ({
       id: r.id,
       title: r.title,
-      excerpt: r.sentences[0]?.text,
+      excerpt: r.firstSentenceText,
       status: r.status === "completed" ? "published" : "published",
       dateLabel: formatDate(r.updatedAt),
       comments: 0,
@@ -67,8 +73,10 @@ async function getItems(section: Section, uid: UserId): Promise<ListItem[]> {
     }));
   }
   if (section === "keyword") {
-    return MOCK_KEYWORDS.filter((k) => (uid === "Y" ? k.yEssay : k.hEssay)).map(
-      (k) => {
+    const all = await listKeywords();
+    return all
+      .filter((k) => (uid === "Y" ? k.yEssay : k.hEssay))
+      .map((k) => {
         const mine = uid === "Y" ? k.yEssay : k.hEssay;
         return {
           id: k.id,
@@ -76,35 +84,38 @@ async function getItems(section: Section, uid: UserId): Promise<ListItem[]> {
           excerpt: mine?.title,
           status: "published",
           dateLabel: formatDate(k.suggestedAt),
-          comments: k.comments,
+          comments: 0,
           href: `/keyword/${k.id}`,
         };
-      }
-    );
+      });
   }
   if (section === "bookclub") {
-    return MOCK_BOOKCLUBS.map((b) => ({
+    const all = await listBookclubs({ includeDrafts: true });
+    return all.map((b) => ({
       id: b.id,
       title: `「${b.bookTitle}」`,
       excerpt: b.bookAuthor,
-      status: "published",
+      status: b.status === "published" ? "published" : "draft",
       dateLabel: b.meetingDate,
-      comments: b.comments,
-      href: `/bookclub/${b.id}`,
+      comments: 0,
+      href: b.status === "published" ? `/bookclub/${b.id}` : `/bookclub/${b.id}/review`,
+      editHref: `/bookclub/${b.id}/review`,
+      canToggle: true,
     }));
   }
   if (section === "photo") {
-    return MOCK_PHOTOSTORIES.filter(
-      (p) => p.photoAuthor === uid || p.textAuthor === uid
-    ).map((p) => ({
-      id: p.id,
-      title: p.photoTitle,
-      excerpt: p.text?.split("\n")[0] ?? "",
-      status: p.status === "completed" ? "published" : "draft",
-      dateLabel: p.photoUploadedAt,
-      comments: p.comments,
-      href: `/photostory/${p.id}`,
-    }));
+    const all = await listPhotostories({ includeWaiting: true });
+    return all
+      .filter((p) => p.photoAuthor === uid || p.textAuthor === uid)
+      .map((p) => ({
+        id: p.id,
+        title: p.photoTitle,
+        excerpt: p.text?.replace(/<[^>]+>/g, "").slice(0, 80) ?? "",
+        status: p.status === "completed" ? "published" : "draft",
+        dateLabel: formatDate(p.photoUploadedAt),
+        comments: 0,
+        href: `/photostory/${p.id}`,
+      }));
   }
   return [];
 }
@@ -268,31 +279,18 @@ export default async function AdminMySectionPage({
                     </p>
                   )}
                 </div>
-                <div className="row gap-4">
-                  <button type="button" className="btn btn-ghost btn-sm" disabled>
-                    수정
-                  </button>
-                  <button type="button" className="btn btn-ghost btn-sm" disabled>
-                    공개↔비공개
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm"
-                    disabled
-                    style={{ color: "var(--danger)" }}
-                  >
-                    삭제
-                  </button>
-                </div>
+                <AdminMyItemActions
+                  section={section}
+                  id={item.id}
+                  editHref={item.editHref}
+                  canToggle={item.canToggle}
+                />
               </div>
             </div>
           ))
         )}
       </div>
 
-      <div className="meta" style={{ marginTop: 16, textAlign: "center" }}>
-        ※ 수정/삭제 액션은 Phase 6 후반부에서 API 연결
-      </div>
     </div>
   );
 }

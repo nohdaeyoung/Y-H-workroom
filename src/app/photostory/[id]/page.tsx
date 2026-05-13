@@ -58,7 +58,7 @@ export default async function PhotostoryDetailPage({ params }: Props) {
           <div>
             <div style={{ fontSize: 13, color: "var(--ink-3)" }}>📸 사진</div>
             <div className="hand" style={{ fontSize: 17, color: photoDeep }}>
-              {photoName} · {formatDate(p.photoUploadedAt)}
+              {p.photoAuthor} · {formatDate(p.photoUploadedAt)}
             </div>
           </div>
         </div>
@@ -90,7 +90,7 @@ export default async function PhotostoryDetailPage({ params }: Props) {
             <div>
               <div style={{ fontSize: 13, color: "var(--ink-3)" }}>✍️ 글</div>
               <div className="hand" style={{ fontSize: 17, color: textDeep }}>
-                {textName}
+                {p.textAuthor}
                 {p.textWrittenAt && ` · ${formatDate(p.textWrittenAt)}`}
               </div>
             </div>
@@ -108,7 +108,7 @@ export default async function PhotostoryDetailPage({ params }: Props) {
         >
           <div style={{ fontSize: 36, opacity: 0.5 }}>✍️</div>
           <div className="serif" style={{ fontSize: 18, marginTop: 12 }}>
-            <span style={{ color: textDeep, fontWeight: 600 }}>{textName}</span>
+            <span style={{ color: textDeep, fontWeight: 600 }}>{p.textAuthor}</span>
             의 글을 기다리고 있어요
           </div>
           <div className="meta" style={{ marginTop: 6 }}>
