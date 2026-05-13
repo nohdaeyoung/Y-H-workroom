@@ -38,7 +38,7 @@ export default async function EssayPage() {
         </div>
       </div>
 
-      <EssayPair essays={essays} />
+      <EssayPair essays={essays} isYH={!!session?.user?.id} />
     </div>
   );
 }

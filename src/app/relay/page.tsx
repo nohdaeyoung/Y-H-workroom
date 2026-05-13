@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { auth } from "@/auth";
-import { MOCK_RELAYS, type Relay } from "@/lib/mock-relays";
+import { listRelays } from "@/lib/relays";
+import type { Relay } from "@/types/domain";
 
 export const metadata = { title: "이어쓰기 — 영희네 작업실" };
+export const dynamic = "force-dynamic";
 
 function relativeDate(ts: number) {
   const diff = Date.now() - ts;
@@ -14,10 +16,7 @@ function relativeDate(ts: number) {
 }
 
 function RelayCard({ relay }: { relay: Relay }) {
-  const first = relay.sentences[0];
-  const last = relay.sentences[relay.sentences.length - 1];
-  const more = relay.sentences.length > 1;
-
+  const more = relay.sentenceCount > 1;
   return (
     <Link href={`/relay/${relay.id}`} className="card lift">
       <div className="row gap-8" style={{ marginBottom: 8, flexWrap: "wrap" }}>
@@ -28,7 +27,7 @@ function RelayCard({ relay }: { relay: Relay }) {
         ) : (
           <span className="chip live">이어지는 중</span>
         )}
-        <span className="meta">{relay.sentences.length}문장</span>
+        <span className="meta">{relay.sentenceCount}문장</span>
         <span className="meta">·</span>
         <span className="meta">{relativeDate(relay.updatedAt)}</span>
       </div>
@@ -39,18 +38,18 @@ function RelayCard({ relay }: { relay: Relay }) {
         className="serif"
         style={{ color: "var(--ink-2)", fontSize: 15.5, lineHeight: 1.7 }}
       >
-        {first.text}
+        {relay.firstSentenceText}
         {more && <span style={{ color: "var(--ink-4)" }}> … </span>}
-        {more && <span>{last.text}</span>}
+        {more && <span>{relay.lastSentenceText}</span>}
       </p>
     </Link>
   );
 }
 
 export default async function RelayListPage() {
-  const session = await auth();
-  const ongoing = MOCK_RELAYS.filter((r) => r.status === "ongoing");
-  const completed = MOCK_RELAYS.filter((r) => r.status === "completed");
+  const [session, all] = await Promise.all([auth(), listRelays()]);
+  const ongoing = all.filter((r) => r.status === "ongoing");
+  const completed = all.filter((r) => r.status === "completed");
 
   return (
     <div className="container fade-in" style={{ maxWidth: 880 }}>

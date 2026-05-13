@@ -6,6 +6,7 @@ import parse from "html-react-parser";
 import DOMPurify from "isomorphic-dompurify";
 import type { Essay } from "@/types/domain";
 import { pairEssaysByDate } from "@/lib/mock-essays";
+import Comments from "./Comments";
 
 function formatDate(ts: number) {
   const d = new Date(ts);
@@ -21,7 +22,15 @@ function sanitize(html: string) {
   return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
 }
 
-function EssayPane({ essay, color }: { essay?: Essay; color: "y" | "h" }) {
+function EssayPane({
+  essay,
+  color,
+  isYH,
+}: {
+  essay?: Essay;
+  color: "y" | "h";
+  isYH: boolean;
+}) {
   if (!essay) {
     return (
       <div
@@ -79,22 +88,27 @@ function EssayPane({ essay, color }: { essay?: Essay; color: "y" | "h" }) {
       >
         {parse(sanitize(essay.content))}
       </div>
-      <div
-        style={{
-          marginTop: 24,
-          paddingTop: 14,
-          borderTop: "1px dashed var(--line)",
-        }}
-      >
-        <Link href={`/essay/${essay.id}`} className="btn btn-ghost btn-sm">
+      <div style={{ marginTop: 12, textAlign: "right" }}>
+        <Link
+          href={`/essay/${essay.id}`}
+          className="btn btn-ghost btn-sm"
+          style={{ fontSize: 12 }}
+        >
           단독으로 보기 →
         </Link>
       </div>
+      <Comments parentType="essay" parentId={essay.id} isYH={isYH} />
     </>
   );
 }
 
-export default function EssayPair({ essays }: { essays: Essay[] }) {
+export default function EssayPair({
+  essays,
+  isYH,
+}: {
+  essays: Essay[];
+  isYH: boolean;
+}) {
   const pairs = useMemo(() => {
     const ps = pairEssaysByDate(essays);
     return ps.map((p, i) => ({
@@ -189,10 +203,10 @@ export default function EssayPair({ essays }: { essays: Essay[] }) {
       {/* Split */}
       <div className="split essay-split">
         <div className="split-pane y-pane essay-pane-y">
-          <EssayPane essay={active.y} color="y" />
+          <EssayPane essay={active.y} color="y" isYH={isYH} />
         </div>
         <div className="split-pane h-pane essay-pane-h">
-          <EssayPane essay={active.h} color="h" />
+          <EssayPane essay={active.h} color="h" isYH={isYH} />
         </div>
       </div>
 
