@@ -7,40 +7,9 @@ import {
   createPhotostoryAction,
   type PhotostoryActionState,
 } from "@/app/photostory/actions";
+import { presignAndUpload } from "@/lib/upload-client";
 
 const initial: PhotostoryActionState = { error: "" };
-
-async function uploadOne(file: File): Promise<string> {
-  const signRes = await fetch("/api/upload/sign", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      kind: "photo",
-      filename: file.name,
-      contentType: file.type || "image/jpeg",
-      size: file.size,
-    }),
-  });
-  if (!signRes.ok) {
-    const data = await signRes.json().catch(() => ({}));
-    throw new Error(data.error || "서명 실패");
-  }
-  const { signedUrl, publicUrl } = await signRes.json();
-
-  await new Promise<void>((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open("PUT", signedUrl);
-    xhr.setRequestHeader("Content-Type", file.type || "image/jpeg");
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) resolve();
-      else reject(new Error(`R2 PUT ${xhr.status}`));
-    };
-    xhr.onerror = () => reject(new Error("네트워크 오류"));
-    xhr.send(file);
-  });
-
-  return publicUrl;
-}
 
 export default function PhotostoryNewForm({ author }: { author: "Y" | "H" }) {
   const fileRef = useRef<HTMLInputElement>(null);
@@ -73,8 +42,8 @@ export default function PhotostoryNewForm({ author }: { author: "Y" | "H" }) {
     try {
       for (let i = 0; i < next.length; i++) {
         if (next[i].url) continue;
-        const url = await uploadOne(next[i].file);
-        next[i] = { ...next[i], url };
+        const { publicUrl } = await presignAndUpload(next[i].file, { kind: "photo" });
+        next[i] = { ...next[i], url: publicUrl };
         setPhotos([...next]);
       }
     } catch (err) {

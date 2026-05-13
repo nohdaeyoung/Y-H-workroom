@@ -1,6 +1,6 @@
 import "server-only";
 import { getDb, getDbOrThrow } from "@/lib/firebase-admin";
-import { MOCK_RELAYS } from "@/lib/mock-relays";
+import type { MOCK_RELAYS } from "@/lib/mock-relays";
 import type {
   Relay,
   RelaySentence,
@@ -50,6 +50,7 @@ export async function listRelays(): Promise<Relay[]> {
   const db = getDb();
   if (!db) {
     if (!isDev()) return [];
+    const { MOCK_RELAYS } = await import("@/lib/mock-relays");
     return MOCK_RELAYS.map(mockToRelay).sort(
       (a, b) => b.updatedAt - a.updatedAt
     );
@@ -68,6 +69,7 @@ export async function getRelayWithSentences(
   const db = getDb();
   if (!db) {
     if (!isDev()) return null;
+    const { MOCK_RELAYS } = await import("@/lib/mock-relays");
     const m = MOCK_RELAYS.find((r) => r.id === id);
     return m ? mockToWithSentences(m) : null;
   }

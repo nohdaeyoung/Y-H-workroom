@@ -2,7 +2,8 @@ import { getAboutContent, sectionByKey } from "@/lib/about";
 import SafeHtml from "@/components/SafeHtml";
 
 export const metadata = { title: "소개 — 영희네 작업실" };
-export const dynamic = "force-dynamic";
+// admin/about/actions에서 revalidatePath("/about") 호출하므로 5분 stale 허용 안전
+export const revalidate = 300;
 
 export default async function AboutPage() {
   const content = await getAboutContent();

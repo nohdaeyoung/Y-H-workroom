@@ -6,6 +6,7 @@ import BookclubAudio from "@/components/BookclubAudio";
 import BookclubTabs from "@/components/BookclubTabs";
 import BookclubImpressions from "@/components/BookclubImpressions";
 import BookclubQuotes from "@/components/BookclubQuotes";
+import BookCover from "@/components/BookCover";
 import Comments from "@/components/Comments";
 
 export const dynamic = "force-dynamic";
@@ -187,65 +188,7 @@ export default async function BookclubDetailPage({ params }: Props) {
       {/* 책 헤더 */}
       <div className="card" style={{ padding: "24px 24px 28px", marginBottom: 20 }}>
         <div className="row gap-20" style={{ flexWrap: "wrap" }}>
-          {b.coverUrl ? (
-            <div
-              style={{
-                width: 100,
-                height: 140,
-                flexShrink: 0,
-                borderRadius: "2px 8px 8px 2px",
-                overflow: "hidden",
-                boxShadow: "3px 3px 10px oklch(0.3 0.04 70 / 0.18)",
-              }}
-            >
-              <img
-                src={b.coverUrl}
-                alt={b.bookTitle}
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-            </div>
-          ) : (
-            <div
-              style={{
-                width: 100,
-                height: 140,
-                flexShrink: 0,
-                background:
-                  "linear-gradient(135deg, oklch(0.62 0.10 25), oklch(0.42 0.08 30))",
-                borderRadius: "2px 8px 8px 2px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: "3px 3px 10px oklch(0.3 0.04 70 / 0.18)",
-                position: "relative",
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  left: 3,
-                  top: 0,
-                  bottom: 0,
-                  width: 4,
-                  background: "oklch(0.3 0.05 60 / 0.3)",
-                }}
-              />
-              <div
-                className="serif"
-                style={{
-                  color: "white",
-                  fontSize: 14,
-                  padding: "0 12px",
-                  textAlign: "center",
-                  fontWeight: 600,
-                  lineHeight: 1.35,
-                }}
-              >
-                {b.bookTitle}
-              </div>
-            </div>
-          )}
+          <BookCover title={b.bookTitle} coverUrl={b.coverUrl} size="md" />
           <div className="flex-1">
             <div className="hand" style={{ fontSize: 18, color: "var(--ink-3)" }}>
               독서모임

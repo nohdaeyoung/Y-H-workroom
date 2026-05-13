@@ -8,38 +8,9 @@ import {
   updateMetaAction,
   type BookclubActionState,
 } from "@/app/bookclub/actions";
+import { presignAndUpload } from "@/lib/upload-client";
 
 const initial: BookclubActionState = { error: "" };
-
-async function uploadCover(file: File): Promise<string> {
-  const signRes = await fetch("/api/upload/sign", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      kind: "photo",
-      filename: file.name,
-      contentType: file.type || "image/jpeg",
-      size: file.size,
-    }),
-  });
-  if (!signRes.ok) {
-    const data = await signRes.json().catch(() => ({}));
-    throw new Error(data.error || "서명 실패");
-  }
-  const { signedUrl, publicUrl } = await signRes.json();
-  await new Promise<void>((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open("PUT", signedUrl);
-    xhr.setRequestHeader("Content-Type", file.type || "image/jpeg");
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) resolve();
-      else reject(new Error(`R2 PUT ${xhr.status}`));
-    };
-    xhr.onerror = () => reject(new Error("네트워크 오류"));
-    xhr.send(file);
-  });
-  return publicUrl;
-}
 
 export default function BookclubMetaForm({
   id,
@@ -68,12 +39,12 @@ export default function BookclubMetaForm({
     setCoverError(null);
     setCoverUploading(true);
     try {
-      const url = await uploadCover(file);
+      const { publicUrl } = await presignAndUpload(file, { kind: "photo" });
       const fd = new FormData();
       fd.append("id", id);
-      fd.append("coverUrl", url);
+      fd.append("coverUrl", publicUrl);
       await updateCoverAction(fd);
-      setCoverUrl(url);
+      setCoverUrl(publicUrl);
       router.refresh();
     } catch (err) {
       setCoverError(err instanceof Error ? err.message : String(err));
@@ -136,6 +107,8 @@ export default function BookclubMetaForm({
               <img
                 src={coverUrl}
                 alt={bookTitle}
+                loading="lazy"
+                decoding="async"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             ) : (

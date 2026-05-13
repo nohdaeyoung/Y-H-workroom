@@ -30,6 +30,8 @@ export default function PhotoSlider({
           <img
             src={photos[active]}
             alt={`사진 ${active + 1}`}
+            loading={active === 0 ? "eager" : "lazy"}
+            decoding="async"
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
           />
         ) : (

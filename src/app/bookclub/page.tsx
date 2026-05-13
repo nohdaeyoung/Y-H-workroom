@@ -2,81 +2,10 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { listBookclubs } from "@/lib/bookclubs";
 import { BOOKCLUB_STATUS_LABEL, type Bookclub } from "@/types/domain";
+import BookCover from "@/components/BookCover";
 
 export const metadata = { title: "독서모임 — 영희네 작업실" };
 export const dynamic = "force-dynamic";
-
-function BookSpine({
-  title,
-  hue,
-  coverUrl,
-}: {
-  title: string;
-  hue: number;
-  coverUrl?: string | null;
-}) {
-  if (coverUrl) {
-    return (
-      <div
-        style={{
-          width: 80,
-          height: 110,
-          flexShrink: 0,
-          borderRadius: "2px 6px 6px 2px",
-          overflow: "hidden",
-          boxShadow: "2px 2px 6px oklch(0.3 0.04 70 / 0.15)",
-        }}
-      >
-        <img
-          src={coverUrl}
-          alt={title}
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
-      </div>
-    );
-  }
-  return (
-    <div
-      style={{
-        width: 80,
-        height: 110,
-        flexShrink: 0,
-        background: `linear-gradient(135deg, oklch(0.78 0.05 ${hue}), oklch(0.55 0.07 ${(hue + 30) % 360}))`,
-        borderRadius: "2px 6px 6px 2px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        boxShadow: "2px 2px 6px oklch(0.3 0.04 70 / 0.15)",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          left: 2,
-          top: 0,
-          bottom: 0,
-          width: 4,
-          background: "oklch(0.3 0.05 60 / 0.3)",
-        }}
-      />
-      <div
-        className="serif"
-        style={{
-          color: "oklch(0.98 0.01 80)",
-          fontSize: 11,
-          padding: "0 8px",
-          textAlign: "center",
-          fontWeight: 500,
-          lineHeight: 1.3,
-        }}
-      >
-        {title}
-      </div>
-    </div>
-  );
-}
 
 function BookclubCard({ b }: { b: Bookclub }) {
   const chipClass =
@@ -88,11 +17,7 @@ function BookclubCard({ b }: { b: Bookclub }) {
       style={{ padding: "20px 22px" }}
     >
       <div className="row gap-20" style={{ flexWrap: "wrap" }}>
-        <BookSpine
-          title={b.bookTitle}
-          hue={30 + (b.bookTitle.charCodeAt(0) * 7) % 200}
-          coverUrl={b.coverUrl}
-        />
+        <BookCover title={b.bookTitle} coverUrl={b.coverUrl} size="sm" />
         <div className="flex-1">
           <div className="row gap-8" style={{ flexWrap: "wrap" }}>
             <span className="hand" style={{ fontSize: 17, color: "var(--ink-3)" }}>

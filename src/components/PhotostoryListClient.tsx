@@ -43,6 +43,8 @@ function PhotoCard({ story, idx }: { story: Photostory; idx: number }) {
           <img
             src={firstPhoto}
             alt={story.photoTitle}
+            loading="lazy"
+            decoding="async"
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
           />
         ) : (

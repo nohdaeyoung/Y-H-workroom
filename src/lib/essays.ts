@@ -1,6 +1,5 @@
 import "server-only";
 import { getDb, getDbOrThrow } from "@/lib/firebase-admin";
-import { MOCK_ESSAYS } from "@/lib/mock-essays";
 import type { Essay, EssayStatus, UserId } from "@/types/domain";
 
 const COLLECTION = "essays";
@@ -19,6 +18,7 @@ export async function listEssays(opts: ListOpts = {}): Promise<Essay[]> {
   const db = getDb();
   if (!db) {
     if (!isDev()) return [];
+    const { MOCK_ESSAYS } = await import("@/lib/mock-essays");
     return filterMock(MOCK_ESSAYS, opts);
   }
 
@@ -47,6 +47,7 @@ export async function getEssay(id: string): Promise<Essay | null> {
   const db = getDb();
   if (!db) {
     if (!isDev()) return null;
+    const { MOCK_ESSAYS } = await import("@/lib/mock-essays");
     return MOCK_ESSAYS.find((e) => e.id === id) ?? null;
   }
   const doc = await db.collection(COLLECTION).doc(id).get();

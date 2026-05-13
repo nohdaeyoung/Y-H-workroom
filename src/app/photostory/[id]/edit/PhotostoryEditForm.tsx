@@ -8,36 +8,7 @@ import {
   updatePhotostoryAction,
 } from "@/app/photostory/actions";
 import type { Photostory } from "@/types/domain";
-
-async function uploadOne(file: File): Promise<string> {
-  const signRes = await fetch("/api/upload/sign", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      kind: "photo",
-      filename: file.name,
-      contentType: file.type || "image/jpeg",
-      size: file.size,
-    }),
-  });
-  if (!signRes.ok) {
-    const data = await signRes.json().catch(() => ({}));
-    throw new Error(data.error || "서명 실패");
-  }
-  const { signedUrl, publicUrl } = await signRes.json();
-  await new Promise<void>((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open("PUT", signedUrl);
-    xhr.setRequestHeader("Content-Type", file.type || "image/jpeg");
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) resolve();
-      else reject(new Error(`R2 PUT ${xhr.status}`));
-    };
-    xhr.onerror = () => reject(new Error("네트워크 오류"));
-    xhr.send(file);
-  });
-  return publicUrl;
-}
+import { presignAndUpload } from "@/lib/upload-client";
 
 export default function PhotostoryEditForm({
   photostory,
@@ -66,8 +37,8 @@ export default function PhotostoryEditForm({
     setUploading(true);
     setPhotoMsg(null);
     try {
-      const url = await uploadOne(file);
-      setPhotos((prev) => [...prev, url].slice(0, 5));
+      const { publicUrl } = await presignAndUpload(file, { kind: "photo" });
+      setPhotos((prev) => [...prev, publicUrl].slice(0, 5));
     } catch (err) {
       setPhotoMsg(err instanceof Error ? err.message : String(err));
     } finally {

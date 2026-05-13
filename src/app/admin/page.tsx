@@ -2,10 +2,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { listEssays } from "@/lib/essays";
-import { MOCK_RELAYS } from "@/lib/mock-relays";
-import { MOCK_KEYWORDS } from "@/lib/mock-keywords";
-import { MOCK_BOOKCLUBS } from "@/lib/mock-bookclubs";
-import { MOCK_PHOTOSTORIES } from "@/lib/mock-photostories";
+import { listRelays } from "@/lib/relays";
+import { listKeywords } from "@/lib/keywords";
+import { listBookclubs } from "@/lib/bookclubs";
+import { listPhotostories } from "@/lib/photostories";
 
 export const metadata = { title: "어드민 — 영희네 작업실" };
 export const dynamic = "force-dynamic";
@@ -24,23 +24,29 @@ export default async function AdminHomePage() {
   const name = id === "Y" ? "대영" : "희서";
   const cls = id === "Y" ? "y" : "h";
 
-  const essays = await listEssays({ limit: 100 });
+  const [essays, relays, keywords, bookclubs, photostories] = await Promise.all([
+    listEssays({ limit: 100 }),
+    listRelays(),
+    listKeywords(),
+    listBookclubs({ includeDrafts: true }),
+    listPhotostories({ includeWaiting: true }),
+  ]);
+
   const myEssayCount = essays.filter((e) => e.author === id).length;
 
   const counts = {
     essay: myEssayCount,
-    relay: MOCK_RELAYS.length,
-    keyword: MOCK_KEYWORDS.filter((k) => (id === "Y" ? k.yEssay : k.hEssay))
-      .length,
-    bookclub: MOCK_BOOKCLUBS.length,
-    photo: MOCK_PHOTOSTORIES.filter(
+    relay: relays.length,
+    keyword: keywords.filter((k) => (id === "Y" ? k.yEssay : k.hEssay)).length,
+    bookclub: bookclubs.length,
+    photo: photostories.filter(
       (p) => p.photoAuthor === id || p.textAuthor === id
     ).length,
   };
 
   const todos: { icon: string; text: string; link: string }[] = [];
   // 아직 안 쓴 키워드
-  for (const k of MOCK_KEYWORDS) {
+  for (const k of keywords) {
     const mine = id === "Y" ? k.yEssay : k.hEssay;
     if (!mine) {
       todos.push({
@@ -52,7 +58,7 @@ export default async function AdminHomePage() {
     }
   }
   // 사진+글 대기
-  for (const p of MOCK_PHOTOSTORIES) {
+  for (const p of photostories) {
     if (p.status === "waiting" && p.textAuthor === id) {
       todos.push({
         icon: "📷",
