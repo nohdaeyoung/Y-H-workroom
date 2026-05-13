@@ -1,7 +1,11 @@
 import Link from "next/link";
-import { MOCK_KEYWORDS, type Keyword } from "@/lib/mock-keywords";
+import { auth } from "@/auth";
+import { listKeywords } from "@/lib/keywords";
+import { suggestKeywordAction } from "./actions";
+import type { Keyword } from "@/types/domain";
 
 export const metadata = { title: "키워드 — 영희네 작업실" };
+export const dynamic = "force-dynamic";
 
 function formatDate(ts: number) {
   const d = new Date(ts);
@@ -129,9 +133,39 @@ function CurrentKeywordCard({ k }: { k: Keyword }) {
   );
 }
 
-export default function KeywordListPage() {
-  const current = MOCK_KEYWORDS[0];
-  const past = MOCK_KEYWORDS.slice(1);
+export default async function KeywordListPage() {
+  const [session, all] = await Promise.all([auth(), listKeywords()]);
+  const isYH = !!session?.user?.id;
+  const current = all[0];
+  const past = all.slice(1);
+
+  if (!current) {
+    return (
+      <div className="container narrow fade-in" style={{ maxWidth: 760 }}>
+        <div style={{ textAlign: "center", padding: "60px 0 24px" }}>
+          <div className="hand" style={{ fontSize: 22, color: "var(--ink-3)" }}>
+            AI keyword
+          </div>
+          <h1 className="page-title" style={{ fontSize: 30 }}>
+            이번 주의 키워드
+          </h1>
+          <div
+            className="serif"
+            style={{ color: "var(--ink-2)", marginTop: 6 }}
+          >
+            아직 키워드가 없어요.
+          </div>
+          {isYH && (
+            <form action={suggestKeywordAction} style={{ marginTop: 24 }}>
+              <button type="submit" className="btn btn-primary">
+                🎲 첫 키워드 받기
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container narrow fade-in" style={{ maxWidth: 760 }}>
@@ -145,6 +179,13 @@ export default function KeywordListPage() {
         <div className="serif" style={{ color: "var(--ink-2)", marginTop: 6 }}>
           AI가 던진 단어로, 각자의 글을 씁니다.
         </div>
+        {isYH && (
+          <form action={suggestKeywordAction} style={{ marginTop: 14 }}>
+            <button type="submit" className="btn btn-ghost btn-sm">
+              🎲 새 키워드 받기
+            </button>
+          </form>
+        )}
       </div>
 
       <CurrentKeywordCard k={current} />
@@ -177,7 +218,9 @@ export default function KeywordListPage() {
                   <div className="row gap-12">
                     <span style={{ fontSize: 13 }}>Y {k.yEssay ? "✅" : "⏳"}</span>
                     <span style={{ fontSize: 13 }}>H {k.hEssay ? "✅" : "⏳"}</span>
-                    {k.comments > 0 && <span className="meta">💬 {k.comments}</span>}
+                    {k.status === "both_done" && (
+                      <span className="meta">✓ 공개</span>
+                    )}
                   </div>
                 </div>
               </Link>

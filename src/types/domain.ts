@@ -52,3 +52,20 @@ export type Relay = {
 export type RelayWithSentences = Relay & {
   sentences: RelaySentence[];
 };
+
+export type KeywordEssay = {
+  title: string;
+  content: string;
+  writtenAt: number;
+};
+
+export type KeywordStatus = "waiting" | "y_done" | "h_done" | "both_done";
+
+export type Keyword = {
+  id: string;
+  keyword: string;
+  suggestedAt: number;
+  yEssay: KeywordEssay | null;
+  hEssay: KeywordEssay | null;
+  status: KeywordStatus;
+};

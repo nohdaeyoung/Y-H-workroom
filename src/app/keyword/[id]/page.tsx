@@ -1,14 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
-import { getKeyword } from "@/lib/mock-keywords";
+import { getKeyword } from "@/lib/keywords";
 import KeywordSplit from "@/components/KeywordSplit";
+import KeywordWriteButton from "@/components/KeywordWriteButton";
 import Comments from "@/components/Comments";
 
 type Props = { params: { id: string } };
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ params }: Props) {
-  const k = getKeyword(params.id);
+  const k = await getKeyword(params.id);
   return { title: k ? `"${k.keyword}" — 키워드` : "키워드" };
 }
 
@@ -89,9 +92,7 @@ export default async function KeywordDetailPage({ params }: Props) {
                 </div>
               </div>
             </div>
-            <button className="btn btn-primary" type="button" disabled>
-              ✎ 지금 쓰기 (데모)
-            </button>
+            <KeywordWriteButton keywordId={k.id} keyword={k.keyword} />
           </div>
         </div>
       )}
