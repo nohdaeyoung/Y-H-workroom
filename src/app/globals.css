@@ -82,7 +82,91 @@
   .prose-serif {
     font-family: var(--font-noto-serif), "Noto Serif KR", serif;
     line-height: 1.9;
+    white-space: normal;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
   }
+  .prose-serif p {
+    margin: 0 0 1em 0;
+  }
+  .prose-serif p:last-child {
+    margin-bottom: 0;
+  }
+  .prose-serif p:empty {
+    /* 빈 단락도 줄바꿈으로 시각화 */
+    min-height: 1em;
+  }
+  .prose-serif h1,
+  .prose-serif h2,
+  .prose-serif h3,
+  .prose-serif h4 {
+    font-family: var(--font-noto-serif), "Noto Serif KR", serif;
+    line-height: 1.4;
+    margin: 1.4em 0 0.5em;
+    font-weight: 600;
+  }
+  .prose-serif h1 { font-size: 1.6em; }
+  .prose-serif h2 { font-size: 1.35em; }
+  .prose-serif h3 { font-size: 1.15em; }
+  .prose-serif h4 { font-size: 1em; }
+  .prose-serif ul,
+  .prose-serif ol {
+    padding-left: 1.4em;
+    margin: 0 0 1em 0;
+  }
+  .prose-serif ul { list-style: disc; }
+  .prose-serif ol { list-style: decimal; }
+  .prose-serif li { margin: 0.2em 0; }
+  .prose-serif li > p { margin: 0; }
+  .prose-serif blockquote {
+    border-left: 3px solid var(--line);
+    padding: 0.2em 0 0.2em 1em;
+    margin: 1em 0;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+  .prose-serif a {
+    color: var(--y-color);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .prose-serif strong { font-weight: 700; }
+  .prose-serif em { font-style: italic; }
+  .prose-serif u { text-decoration: underline; }
+  .prose-serif s { text-decoration: line-through; }
+  .prose-serif hr {
+    border: 0;
+    border-top: 1px solid var(--line);
+    margin: 1.8em 0;
+  }
+  .prose-serif code {
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 0.9em;
+    background: var(--paper-dark);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+  }
+  .prose-serif pre {
+    background: var(--paper-dark);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 1em;
+    overflow-x: auto;
+    margin: 1em 0;
+  }
+  .prose-serif pre code {
+    background: none;
+    padding: 0;
+  }
+  .prose-serif img {
+    max-width: 100%;
+    border-radius: 6px;
+    margin: 1em auto;
+    display: block;
+  }
+  .prose-serif [data-text-align="center"] { text-align: center; }
+  .prose-serif [data-text-align="right"] { text-align: right; }
+  .prose-serif [data-text-align="justify"] { text-align: justify; }
 
   .hand {
     font-family: var(--font-gaegu), "Gaegu", cursive;
