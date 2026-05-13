@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>영희네 작업실 — 기획서</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+<style>
+  :root {
+    --y-color: #c8954a;
+    --y-soft: #f4e9d2;
+    --y-bg: #fbf6ea;
+    --h-color: #4a5a8a;
+    --h-soft: #d8dde8;
+    --h-bg: #eef0f6;
+    --paper: #faf7f0;
+    --paper-dark: #f0ebde;
+    --ink: #2c2a26;
+    --ink-soft: #6b6357;
+    --line: #d8d1bd;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Pretendard Variable', Pretendard, sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(200,149,74,0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(74,90,138,0.04) 0%, transparent 50%);
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.2 0 0 0 0 0.18 0 0 0 0 0.15 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.6; pointer-events: none; z-index: 1;
+  }
+
+  .slideshow { position: relative; width: 100%; height: 100vh; z-index: 2; }
+  .slide {
+    position: absolute; inset: 0;
+    padding: 5vh 6vw;
+    display: flex; flex-direction: column;
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    transform: translateY(20px);
+    overflow-y: auto;
+  }
+  .slide.active { opacity: 1; visibility: visible; transform: translateY(0); }
+
+  /* 헤더 */
+  .slide-header {
+    display: flex; align-items: baseline; gap: 16px;
+    margin-bottom: 36px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .slide-num {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 13px; letter-spacing: 0.15em;
+    color: var(--ink-soft);
+  }
+  .slide-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: clamp(24px, 3.2vw, 38px);
+    font-weight: 500;
+  }
+  .slide-sub {
+    margin-left: auto;
+    font-size: 13px; color: var(--ink-soft);
+  }
+
+  /* 표지 */
+  .cover {
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 0;
+  }
+  .cover-decor {
+    width: 80px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--y-color), var(--h-color), transparent);
+    margin-bottom: 32px;
+  }
+  .cover-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: clamp(48px, 7vw, 96px);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .cover-title .y { color: var(--y-color); }
+  .cover-title .h { color: var(--h-color); }
+  .cover-sub {
+    margin-top: 24px;
+    font-family: 'Noto Serif KR', serif;
+    font-size: clamp(15px, 1.5vw, 19px);
+    color: var(--ink-soft);
+    letter-spacing: 0.05em;
+  }
+  .cover-quote {
+    margin-top: 40px;
+    font-family: 'Noto Serif KR', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--ink-soft);
+  }
+  .cover-meta {
+    position: absolute; bottom: 60px;
+    font-size: 12px; letter-spacing: 0.2em;
+    color: var(--ink-soft);
+  }
+
+  /* 콘텐츠 */
+  .content { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+  .content-grid { display: grid; gap: 20px; }
+  .two-col { grid-template-columns: 1fr 1fr; }
+  .three-col { grid-template-columns: 1fr 1fr 1fr; }
+
+  .card {
+    background: var(--paper-dark);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 24px;
+  }
+  .card-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 17px; font-weight: 500;
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-body {
+    font-size: 14px; line-height: 1.7;
+    color: var(--ink-soft);
+  }
+  .card-body ul { list-style: none; }
+  .card-body li {
+    padding: 4px 0;
+    padding-left: 16px;
+    position: relative;
+  }
+  .card-body li::before {
+    content: "·";
+    position: absolute; left: 4px;
+    color: var(--ink);
+  }
+
+  .y-card { border-left: 3px solid var(--y-color); background: var(--y-bg); }
+  .h-card { border-left: 3px solid var(--h-color); background: var(--h-bg); }
+
+  .panel {
+    background: var(--paper-dark);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 28px;
+    flex: 1;
+  }
+
+  /* 나란히 읽기 미리보기 */
+  .essay-preview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+    height: 100%;
+    min-height: 400px;
+  }
+  .essay-pane {
+    padding: 28px;
+    overflow-y: auto;
+  }
+  .essay-pane.y { background: var(--y-bg); }
+  .essay-pane.h { background: var(--h-bg); }
+  .essay-author {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 12px; letter-spacing: 0.2em;
+    margin-bottom: 8px;
+  }
+  .essay-pane.y .essay-author { color: var(--y-color); }
+  .essay-pane.h .essay-author { color: var(--h-color); }
+  .essay-pane h3 {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 22px; font-weight: 500;
+    margin-bottom: 8px;
+  }
+  .essay-pane .date {
+    font-size: 12px; color: var(--ink-soft);
+    margin-bottom: 20px;
+  }
+  .essay-pane p {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 15px; line-height: 1.9;
+    color: var(--ink);
+  }
+
+  /* 사이트맵 */
+  .sitemap {
+    font-family: ui-monospace, 'SF Mono', monospace;
+    font-size: 14px;
+    line-height: 1.9;
+    background: var(--paper-dark);
+    padding: 28px 32px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+  }
+  .sitemap .route {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .sitemap .auth {
+    color: var(--y-color);
+    font-size: 11px;
+    margin-left: 12px;
+  }
+
+  /* 릴레이 */
+  .relay-flow {
+    display: flex; flex-direction: column; gap: 12px;
+    max-width: 600px; margin: 0 auto;
+  }
+  .relay-item {
+    padding: 16px 20px;
+    border-radius: 4px;
+    font-family: 'Noto Serif KR', serif;
+    font-size: 15px; line-height: 1.7;
+  }
+  .relay-item.y { background: var(--y-bg); border-left: 3px solid var(--y-color); }
+  .relay-item.h { background: var(--h-bg); border-left: 3px solid var(--h-color); margin-left: 40px; }
+  .relay-meta {
+    font-size: 11px; color: var(--ink-soft);
+    margin-top: 6px;
+    font-family: 'Pretendard Variable', sans-serif;
+  }
+  .relay-arrow {
+    text-align: center; color: var(--ink-soft); font-size: 14px;
+  }
+
+  /* 키워드 */
+  .keyword-box {
+    text-align: center;
+    padding: 40px;
+    background: var(--paper-dark);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+  }
+  .keyword-label {
+    font-size: 12px; letter-spacing: 0.3em;
+    color: var(--ink-soft);
+    margin-bottom: 20px;
+  }
+  .keyword-word {
+    font-family: 'Noto Serif KR', serif;
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 500;
+    margin-bottom: 20px;
+  }
+  .keyword-state {
+    display: flex; justify-content: center; gap: 32px;
+    margin-top: 20px;
+  }
+  .keyword-side {
+    text-align: center;
+    padding: 16px 24px;
+    border-radius: 4px;
+    min-width: 140px;
+  }
+  .keyword-side.y { background: var(--y-bg); }
+  .keyword-side.h { background: var(--h-bg); }
+  .keyword-side .who {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 14px; letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+  .keyword-side .status { font-size: 12px; color: var(--ink-soft); }
+
+  /* 독서모임 */
+  .chat {
+    display: flex; flex-direction: column; gap: 12px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .bubble {
+    padding: 14px 18px;
+    border-radius: 14px;
+    max-width: 70%;
+    font-size: 14px;
+    line-height: 1.6;
+    font-family: 'Noto Serif KR', serif;
+  }
+  .bubble.y {
+    background: var(--y-bg);
+    border: 1px solid var(--y-soft);
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+  }
+  .bubble.h {
+    background: var(--h-bg);
+    border: 1px solid var(--h-soft);
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+  }
+  .bubble-who {
+    font-size: 11px; letter-spacing: 0.15em;
+    margin-bottom: 4px; font-family: 'Pretendard Variable', sans-serif;
+  }
+  .bubble.y .bubble-who { color: var(--y-color); }
+  .bubble.h .bubble-who { color: var(--h-color); }
+
+  /* 사진+글 */
+  .photo-mockup {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 24px;
+    align-items: stretch;
+  }
+  .photo-frame {
+    background: var(--paper-dark);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 16px;
+    display: flex; flex-direction: column;
+  }
+  .photo-canvas {
+    flex: 1;
+    background: linear-gradient(135deg, #b8c2d4 0%, #8a98b3 50%, #5e6f8f 100%);
+    border-radius: 4px;
+    position: relative;
+    min-height: 280px;
+    overflow: hidden;
+  }
+  .photo-canvas::before {
+    content: "";
+    position: absolute; left: 25%; top: 35%;
+    width: 35%; height: 50%;
+    background: rgba(0,0,0,0.15);
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 2px;
+  }
+  .photo-meta {
+    margin-top: 12px;
+    font-size: 12px; color: var(--ink-soft);
+  }
+  .photo-meta .badge {
+    background: var(--h-bg); color: var(--h-color);
+    padding: 2px 8px; border-radius: 3px;
+    margin-right: 6px;
+  }
+  .photo-text {
+    background: var(--y-bg);
+    border: 1px solid var(--y-soft);
+    border-radius: 4px;
+    padding: 24px;
+    font-family: 'Noto Serif KR', serif;
+    font-size: 15px; line-height: 1.9;
+  }
+  .photo-text-label {
+    font-size: 11px; letter-spacing: 0.2em;
+    color: var(--y-color);
+    margin-bottom: 12px;
+    font-family: 'Pretendard Variable', sans-serif;
+  }
+  .photo-text-author {
+    margin-top: 16px;
+    font-size: 12px; color: var(--ink-soft);
+    font-family: 'Pretendard Variable', sans-serif;
+  }
+
+  /* 로드맵 */
+  .roadmap { display: flex; flex-direction: column; gap: 10px; }
+  .phase {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 24px;
+    padding: 16px 20px;
+    background: var(--paper-dark);
+    border-left: 3px solid var(--line);
+    border-radius: 4px;
+    align-items: center;
+  }
+  .phase:nth-child(odd) { border-left-color: var(--y-color); }
+  .phase:nth-child(even) { border-left-color: var(--h-color); }
+  .phase-label {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 14px; font-weight: 500;
+  }
+  .phase-days {
+    font-size: 11px; color: var(--ink-soft);
+    margin-top: 2px;
+  }
+  .phase-tasks {
+    font-size: 13px; color: var(--ink-soft); line-height: 1.6;
+  }
+
+  /* 기술 스택 */
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .stack-item {
+    background: var(--paper-dark);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 18px;
+    text-align: center;
+  }
+  .stack-item .cat {
+    font-size: 11px; letter-spacing: 0.2em;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+  .stack-item .tech {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  /* 데이터 모델 */
+  .schemas {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .schema {
+    background: var(--paper-dark);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 18px;
+    font-family: ui-monospace, 'SF Mono', monospace;
+    font-size: 11.5px;
+    line-height: 1.7;
+  }
+  .schema-name {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 14px; font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--line);
+  }
+  .schema-field { color: var(--ink-soft); }
+  .schema-field .key { color: var(--ink); }
+  .schema-field .type { color: var(--y-color); font-style: italic; }
+
+  /* 특별한 점 */
+  .specials {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+  .special {
+    background: var(--paper-dark);
+    border-left: 3px solid var(--y-color);
+    border-radius: 4px;
+    padding: 22px 26px;
+  }
+  .special:nth-child(even) { border-left-color: var(--h-color); }
+  .special-num {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 28px; font-weight: 300;
+    color: var(--ink-soft);
+    line-height: 1;
+  }
+  .special-text {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 15px; line-height: 1.7;
+    margin-top: 8px;
+  }
+
+  /* 디자인 */
+  .palette {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .swatch {
+    padding: 32px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+  }
+  .swatch.y {
+    background: linear-gradient(135deg, var(--y-bg), var(--y-soft));
+    color: var(--y-color);
+  }
+  .swatch.h {
+    background: linear-gradient(135deg, var(--h-bg), var(--h-soft));
+    color: var(--h-color);
+  }
+  .swatch-letter {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 88px;
+    font-weight: 500;
+    line-height: 1;
+  }
+  .swatch-name {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 18px;
+    margin-top: 8px;
+  }
+  .swatch-hex {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+
+  /* 마무리 */
+  .ending {
+    align-items: center; justify-content: center;
+    text-align: center;
+  }
+  .ending-quote {
+    font-family: 'Noto Serif KR', serif;
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 400;
+    line-height: 1.6;
+    max-width: 800px;
+  }
+  .ending-y { color: var(--y-color); }
+  .ending-h { color: var(--h-color); }
+  .ending-sign {
+    margin-top: 48px;
+    font-family: 'Noto Serif KR', serif;
+    font-size: 14px;
+    letter-spacing: 0.3em;
+    color: var(--ink-soft);
+  }
+
+  /* 네비게이션 */
+  .nav {
+    position: fixed; bottom: 32px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; align-items: center; gap: 16px;
+    z-index: 10;
+    background: rgba(250, 247, 240, 0.9);
+    backdrop-filter: blur(8px);
+    padding: 10px 20px;
+    border-radius: 100px;
+    border: 1px solid var(--line);
+    box-shadow: 0 4px 24px rgba(44, 42, 38, 0.08);
+  }
+  .nav-btn {
+    background: none; border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--ink);
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
+    font-family: 'Noto Serif KR', serif;
+  }
+  .nav-btn:hover { background: var(--paper-dark); }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .nav-counter {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 13px;
+    color: var(--ink-soft);
+    min-width: 50px;
+    text-align: center;
+    letter-spacing: 0.1em;
+  }
+
+  .progress {
+    position: fixed; top: 0; left: 0;
+    height: 2px; z-index: 10;
+    background: linear-gradient(90deg, var(--y-color), var(--h-color));
+    transition: width 0.3s ease;
+  }
+
+  .keyhint {
+    position: fixed; bottom: 16px; right: 24px;
+    font-size: 11px; color: var(--ink-soft);
+    letter-spacing: 0.1em;
+    z-index: 10;
+  }
+
+  /* 반응형 */
+  @media (max-width: 768px) {
+    .slide { padding: 4vh 5vw; }
+    .two-col, .three-col, .photo-mockup, .palette { grid-template-columns: 1fr; }
+    .stack-grid { grid-template-columns: repeat(2, 1fr); }
+    .schemas { grid-template-columns: 1fr; }
+    .specials { grid-template-columns: 1fr; }
+    .essay-preview { grid-template-columns: 1fr; min-height: 0; }
+    .phase { grid-template-columns: 1fr; gap: 8px; }
+    .keyhint { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<div class="slideshow" id="slideshow">
+
+  <!-- 1. 표지 -->
+  <section class="slide cover active">
+    <div class="cover-decor"></div>
+    <h1 class="cover-title"><span class="y">영</span><span class="h">희</span>네 작업실</h1>
+    <p class="cover-sub">두 사람의 글과 사진이 만나는 곳</p>
+    <p class="cover-quote">— Y &amp; H —</p>
+    <p class="cover-meta">PROJECT PLAN · 2026</p>
+  </section>
+
+  <!-- 2. 컨셉 -->
+  <section class="slide">
+    <header class="slide-header">
+      <span class="slide-num">01</span>
+      <h2 class="slide-title">컨셉</h2>
+      <span class="slide-sub">CONCEPT</span>
+    </header>
+    <div class="content">
+      <div class="card" style="text-align:center; padding: 48px;">
+        <p style="font-family:'Noto Serif KR',serif; font-size: 28px; line-height: 1.7;">
+          <span style="color:var(--y-color)">영</span>(Y, 대영) + <span style="color:var(--h-color)">희</span>(H, 희서)
+        </p>
+        <p style="margin-top: 16px; font-family:'Noto Serif KR',serif; font-size: 17px; color: var(--ink-soft); line-height: 1.8;">
+          두 사람이 함께 글을 쓰고, 사진을 올리고,<br/>이야기를 나누는 작업실.
+        </p>
+      </div>
+      <div class="content-grid three-col">
+        <div class="card">
+          <div class="card-title">도메인</div>
+          <div class="card-body">yh.324.ing</div>
+        </div>
+        <div class="card">
+          <div class="card-title">공개 범위</div>
+          <div class="card-body">누구나 읽기 가능<br/>쓰기는 Y/H만</div>
+        </div>
+        <div class="card">
+          <div class="card-title">톤앤매너</div>
+          <div class="card-body">따뜻하고 감성적<br/>(브런치 감성)</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. 사용자 역할 -->
+  <section class="slide">
+    <header class="slide-header">
+      <span class="slide-num">02</span>
+      <h2 class="slide-title">사용자 역할 &amp; 인증</h2>
+      <span class="slide-sub">USERS</span>
+    </header>
+    <div class="content">
+      <div class="content-grid three-col">
+        <div class="card y-card">
+          <div class="card-title">Y · 대영</div>
+          <div class="card-body">관리자 + 작성자<br/>비밀번호 로그인</div>
+        </div>
+        <div class="card h-card">
+          <div class="card-title">H · 희서</div>
+          <div class="card-body">관리자 + 작성자<br/>비밀번호 로그인</div>
+        </div>
+        <div class="card">
+          <div class="card-title">방문자</div>
+          <div class="card-body">읽기 + 댓글만<br/>비로그인, 닉네임</div>
+        </div>
+      </div>
+      <div class="card" style="background: var(--paper);">
+        <div class="card-title">인증 방식</div>
+        <div class="card-body">
+          <ul>
+            <li>Y/H는 단 2명이므로 비밀번호 인증 (쿠키/세션 기반)</li>
+            <li>방문자는 가입 없이 닉네임만으로 댓글 가능</li>
+            <li>댓글에는 비밀 옵션 (Y/H만 볼 수 있음)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. 사이트맵 -->
+  <section class="slide">
+    <header class="slide-header">
+      <span class="slide-num">03</span>
+      <h2 class="slide-title">사이트맵</h2>
+      <span class="slide-sub">SITEMAP</span>
+    </header>
+    <div class="content">
+      <div class="sitemap">
+        <div><span class="route">/</span>                     홈 — 최근 활동 모아보기</div>
+        <div><span class="route">/essay</span>                에세이 — 나란히 읽기 (Y|H)</div>
+        <div><span class="route">/essay/write</span>          에세이 쓰기 <span class="auth">Y/H 전용</span></div>
+        <div><span class="route">/essay/[id]</span>           에세이 단독 보기</div>
+        <div><span class="route">/relay</span>                이어쓰기 목록</div>
+        <div><span class="route">/relay/[id]</span>           이어쓰기 상세</div>
+        <div><span class="route">/relay/new</span>            이어쓰기 시작 <span class="auth">Y/H 전용</span></div>
+        <div><span class="route">/keyword</span>              AI 키워드 에세이</div>
+        <div><span class="route">/keyword/[id]</span>         키워드 에세이 상세 (Y|H 나란히)</div>
+        <div><span class="route">/bookclub</span>             독서 모임</div>
+        <div><span class="route">/bookclub/[id]</span>        독서 모임 상세 (대화형)</div>
+        <div><span class="route">/photostory</span>           사진+글 목록</div>
+        <div><span class="route">/photostory/[id]</span>      사진+글 상세</div>
+        <div><span class="route">/login</span>                로그인</div>
+        <div><span class="route">/about</span>                소개</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. 에세이 - 나란히 읽기 -->
+  <section class="slide">
+    <header class="slide-header">
+      <span class="slide-num">04</span>
+      <h2 class="slide-title">에세이 — 나란히 읽기</h2>
+      <span class="slide-sub">FEATURE 01</span>
+    </header>
+    <div class="content">
+      <p style="font-family:'Noto Serif KR',serif; font-size: 16px; color: var(--ink-soft); margin-bottom: 8px;">
+        같은 시간, 다른 시선. Y와 H의 에세이를 나란히 펼쳐 읽는다.
+      </p>
+      <div class="essay-preview">
+        <div class="essay-pane y">
+          <div class="essay-author">Y · 대영</div>
+          <h3>비오는 날</h3>
+          <div class="date">2026.05.13</div>
+          <p>비가 오는 날이면 항상 그 골목이 생각난다. 빗방울이 떨어지면 먼저 듣고 싶어지는 소리들이 있고, 그건 늘 그 자리에서 시작됐다.</p>
+        </div>
+        <div class="essay-pane h">
+          <div class="essay-author">H · 희서</div>
+          <h3>우산 하나</h3>
+          <div class="date">2026.05.12</div>
+          <p>우산이 하나밖에 없는 날이면 오히려 비를 맞고 싶어진다. 어깨가 젖어가는 동안 떠오르는 사람이 있다는 건, 결국 다정한 일이다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. 에세이 - 작성/구현 -->
+  <section class="slide">
+    <header class="slide-header">
+      <span class="slide-num">04</span>
+      <h2 class="slide-title">에세이 — 구현 포인트</h2>
+      <span class="slide-sub">FEATURE 01</span>
+    </header>
+    <div class="content">
+      <div class="content-grid two-col">
+        <div class="card">
+          <div class="card-title">읽기 경험</div>
+          <div class="card-body">
+            <ul>
+              <li>데스크탑: 50:50 split view, 독립 스크롤</li>
+              <li>모바일: 탭으로 전환 (Y | H)</li>
+              <li>각 패널에 댓글 영역 포함</li>
+              <li>최신순 페어링, 단독 보기도 가능</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">쓰기 (Y/H 전용)</div>
+          <div class="card-body">
+            <ul>
+              <li>TipTap 리치 에디터</li>
+              <li>사진 업로드 (본문 내 삽입)</li>
+              <li>카테고리/태그 선택</li>
+              <li>공개/비공개 설정</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card y-card">
+          <div class="card-title">댓글</div>
+          <div class="card-body">
+            <ul>
+              <li>닉네임 + 본문 (비로그인 가능)</li>
+              <li>비밀 댓글 (Y/H만 열람)</li>
+              <li>패널별 독립 댓글</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card h-card">
+          <div class="card-title">데이터</div>
+          <div class="card-body">
+            <ul>
+              <li>Firestore <code>essays</code> 컬렉션</li>
+              <li>이미지: Firebase Storage</li>
+              <li>댓글: 서브컬렉션</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. 이어쓰기 -->
+  <section class="slide">
+    <header class="slide-header">
+      <span class="slide-num">05</span>
+      <h2 class="slide-title">이어쓰기 (Relay)</h2>
+      <span class="slide-sub">FEATURE 02</span>
+    </header>
+    <div class="content">
+      <p style="font-family:'Noto Serif KR',serif; font-size: 16px; color: var(--ink-soft);">
+        한 문장씩 번갈아 잇는다. 방문자에겐 작성자를 숨겨, 글 자체에 집중하게 한다.
+      </p>
+      <div class="relay-flow">
+        <div class="relay-item y">
+          비가 오는 날이면 항상 그 골목이 생각난다.
+          <div class="relay-meta">방문자에겐: ??? · 5/13   |   로그인 시: Y · 5/13</div>
+        </div>
+        <div class="relay-arrow">↓</div>
+        <div class="relay-item h">
+          골목 끝 빨간 우체통 앞에서 우산을 접던 너.
+          <div class="relay-meta">방문자에겐: ??? · 5/13   |   로그인 시: H · 5/13</div>
+        </div>
+        <div class="relay-arrow">↓</div>
+        <div class="relay-item y">
+          그 우산은 결국 여기까지 따라왔다.
+          <div class="relay-meta">방문자에겐: ??? · 5/14   |   로그인 시: Y · 5/14</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. 이어쓰기 규칙 -->
+  <section class="slide">
+    <header class="slide-header">
+      <span class="slide-num">05</span>
+      <h2 class="slide-title">이어쓰기 — 핵심 규칙</h2>
+      <span class="slide-sub">FEATURE 02</span>
+    </header>
+    <div class="content">
+      <div class="content-grid two-col">
+        <div class="card y-card">
+          <div class="card-title">권한 &amp; 익명</div>
+          <div class="card-body">
+            <ul>
+              <li>작성자는 Y/H만 (로그인 필수)</li>
+              <li>비로그인 방문자에겐 작성자 ??? 표시</li>
+              <li>둘 다 로그인 후에만 누가 썼는지 노출</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card h-card">
+          <div class="card-title">작성 규칙</div>
+          <div class="card-body">
+            <ul>
+              <li>한 사람이 연속 작성 불가 (직전 작성자 체크)</li>
+              <li>한 문장 최대 200자</li>
+              <li>편집 불가, 한 번 쓰면 끝</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">완결</div>
+          <div class="card-body">
+            <ul>
+              <li>Y와 H 모두 동의해야 완결</li>
+              <li>한쪽만 동의 시 대기 상태</li>
+              <li>완결 후 잠금, 댓글만 가능</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">기존 자산</div>
+          <div class="card-body">
+            <ul>
+              <li>relay 프로젝트 코드를 베이스로 커스터마이징</li>
+              <li>Firestore <code>relays</code> + <code>sentences</code> 서브컬렉션</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. AI 키워드 -->
+  <section class="slide">
+    <header class="slide-header">
+      <span class="slide-num">06</span>
+      <h2 class="slide-title">AI 키워드 에세이</h2>
+      <span class="slide-sub">FEATURE 03</span>
+    </header>
+    <div class="content">
+      <div class="keyword-box">
+        <div class="keyword-label">이번 주의 키워드</div>
+        <div class="keyword-word">"빈 의자"</div>
+        <div style="font-size: 12px; color: var(--ink-soft);">2026.05.13 · AI가 골라준 키워드</div>
+        <div class="keyword-state">
+          <div class="keyword-side y">
+            <div class="who">Y · 대영</div>
+            <div class="status">✓ 작성 완료</div>
+          </div>
+          <div class="keyword-side h">
+            <div class="who">H · 희서</div>
+            <div class="status">⏳ 작성 대기중</div>
+          </div>
+        </div>
+      </div>
+      <div class="content-grid two-col">
+        <div class="card">
+          <div class="card-title">핵심 규칙</div>
+          <div class="card-body">
+            <ul>
+              <li>AI가 주 1회 (또는 수동) 키워드 제안</li>
+              <li>같은 키워드로 Y와 H가 각자 작성</li>
+              <li>한쪽이 쓸 때 상대방 글은 블라인드</li>
+              <li>둘 다 완성하면 동시에 공개 (서프라이즈)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">제약 &amp; 구현</div>
+          <div class="card-body">
+            <ul>
+              <li>최대 1,000자 (단편 에세이)</li>
+              <li>OpenAI/Anthropic API로 키워드 생성</li>
+              <li>지난 키워드 아카이브 (히스토리 페이지)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. 독서 모임 -->
+  <section class="slide">
+    <header class="slide-header">
+      <span class="slide-num">07</span>
+      <h2 class="slide-title">독서 모임</h2>
+      <span class="slide-sub">FEATURE 04</span>
+    </header>
+    <div class="content">
+      <p style="font-family:'Noto Serif KR',serif; font-size: 16px; color: var(--ink-soft);">
+        둘의 대화를 녹음 → 텍스트 → 메신저처럼 예쁘게 정리한다.
+      </p>
+      <div class="chat">
+        <div class="bubble y">
+          <div class="bubble-who">Y</div>
+          이 책에서 가장 인상 깊었던 부분이 어디였어?
+        </div>
+        <div class="bubble h">
+          <div class="bubble-who">H</div>
+          나는 3장에서 "완벽하지 않아도 괜찮다"는 문장이 마음에 남았어. 요즘 내가 딱 그런 상태거든.
+        </div>
+        <div class="bubble y">
+          <div class="bubble-who">Y</div>
+          맞아. 나도 비슷한 부분이 와닿았는데, 특히 "비교를 멈추는 순간"이라는 표현이...
+        </div>
+      </div>
+      <div class="card" style="margin-top: 4px;">
+        <div class="card-title">작업 플로우</div>
+        <div class="card-body">
+          1. Y/H가 녹음 파일 업로드 (.mp3, .m4a) →
+          2. Whisper API로 음성→텍스트 →
+          3. AI가 화자 구분 + 대화 정리 →
+          4. Y/H 검수 후 공개
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11. 사진+글 -->
+  <section class="slide">
+    <header class="slide-header">
+      <span class="slide-num">08</span>
+      <h2 class="slide-title">사진+글 — 한 사람이 찍고, 한 사람이 쓰다</h2>
+      <span class="slide-sub">FEATURE 05</span>
+    </header>
+    <div class="content">
+      <div class="photo-mockup">
+        <div class="photo-frame">
+          <div class="photo-canvas"></div>
+          <div class="photo-meta">
+            <span class="badge">📷 H</span>빈 의자가 놓인 카페 창가 · 2026.05.13
+          </div>
+        </div>
+        <div class="photo-text">
+          <div class="photo-text-label">✍️ Y의 글</div>
+          누군가 앉았다 간 자리에는<br/>
+          항상 온기가 남아 있다.<br/>
+          커피잔 자국처럼, 대화의 여운처럼.<br/>
+          빈 의자는 비어 있는 게 아니라<br/>
+          기다리고 있는 거다.
+          <div class="photo-text-author">— Y · 2026.05.14</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12. 사진+글 플로우 -->
+  <section class="slide">
+    <header class="slide-header">
+      <span class="slide-num">08</span>
+      <h2 class="slide-title">사진+글 — 플로우</h2>
+      <span class="slide-sub">FEATURE 05</span>
+    </header>
+    <div class="content">
+      <div class="content-grid three-col">
+        <div class="card h-card">
+          <div class="card-title">1. 사진 올리기</div>
+          <div class="card-body">
+            <ul>
+              <li>Y 또는 H가 로그인 후 업로드</li>
+              <li>사진 1~5장 + 제목(선택)</li>
+              <li>상대방에게 글쓰기 요청 자동 발송</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card y-card">
+          <div class="card-title">2. 글 쓰기</div>
+          <div class="card-body">
+            <ul>
+              <li>상대방이 사진을 보고 자유롭게 작성</li>
+              <li>에세이/시/짧은 산문/한 줄 — 형식 자유</li>
+              <li>글 길이 제한 없음</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">3. 완성 → 공개</div>
+          <div class="card-body">
+            <ul>
+              <li>사진 올린 사람이 글 확인</li>
+              <li>승인 후 공개</li>
+              <li>완성 시 상태 변경 (⏳ → ✍️)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">디자인 포인트</div>
+        <div class="card-body">사진이 메인, 글은 사진 아래에 서정적으로 / 갤러리 그리드 목록 / 필터 (전체 · H→Y · Y→H) / 여러 장은 슬라이드 갤러리</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13. 홈 -->
+  <section class="slide">
+    <header class="slide-header">
+      <span class="slide-num">09</span>
+      <h2 class="slide-title">홈 페이지</h2>
+      <span class="slide-sub">HOME</span>
+    </header>
+    <div class="content">
+      <div class="panel" style="text-align: center;">
+        <h3 style="font-family:'Noto Serif KR',serif; font-size: 32px; font-weight: 500; margin-bottom: 8px;">영희네 작업실</h3>
+        <p style="color: var(--ink-soft); font-family:'Noto Serif KR',serif;">두 사람의 글과 사진이 만나는 곳</p>
+        <div style="margin-top: 32px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto;">
+          <p style="font-size: 12px; letter-spacing: 0.2em; color: var(--ink-soft); margin-bottom: 16px;">── 최근 활동 ──</p>
+          <div style="display: flex; flex-direction: column; gap: 10px; font-family:'Noto Serif KR',serif; font-size: 14px;">
+            <div>📝 에세이 · <span style="color:var(--y-color)">Y가 "비오는 날"을 썼습니다</span> · 2시간 전</div>
+            <div>✍️ 이어쓰기 · "골목길"에 <span style="color:var(--h-color)">H가 이어 썼습니다</span> · 어제</div>
+            <div>🎲 키워드 · "빈 의자" — Y ✅ H ⏳ · 3일 전</div>
+            <div>📖 독서모임 · 「나는 나로 살기로 했다」 · 1주 전</div>
+            <div>📷 사진+글 · H가 사진을 올렸습니다, Y의 글 대기중</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14. 기술 스택 -->
+  <section class="slide">
+    <header class="slide-header">
+      <span class="slide-num">10</span>
+      <h2 class="slide-title">기술 스택</h2>
+      <span class="slide-sub">STACK</span>
+    </header>
+    <div class="content">
+      <div class="stack-grid">
+        <div class="stack-item"><div class="cat">FRAMEWORK</div><div class="tech">Next.js<br/>(App Router)</div></div>
+        <div class="stack-item"><div class="cat">STYLE</div><div class="tech">Tailwind CSS</div></div>
+        <div class="stack-item"><div class="cat">DATABASE</div><div class="tech">Firebase<br/>Firestore</div></div>
+        <div class="stack-item"><div class="cat">AUTH</div><div class="tech">비밀번호<br/>쿠키 세션</div></div>
+        <div class="stack-item"><div class="cat">STORAGE</div><div class="tech">Firebase Storage<br/>(사진 · 녹음)</div></div>
+        <div class="stack-item"><div class="cat">AI</div><div class="tech">OpenAI / Anthropic<br/>Whisper API</div></div>
+        <div class="stack-item"><div class="cat">EDITOR</div><div class="tech">TipTap</div></div>
+        <div class="stack-item"><div class="cat">DEPLOY</div><div class="tech">Vercel</div></div>
+        <div class="stack-item"><div class="cat">FONT</div><div class="tech">Pretendard<br/>Noto Serif KR</div></div>
+        <div class="stack-item"><div class="cat">DOMAIN</div><div class="tech">yh.324.ing</div></div>
+        <div class="stack-item"><div class="cat">PWA</div><div class="tech">선택 사항</div></div>
+        <div class="stack-item"><div class="cat">SEO</div><div class="tech">OG 이미지<br/>메타 태그</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15. 데이터 모델 -->
+  <section class="slide">
+    <header class="slide-header">
+      <span class="slide-num">11</span>
+      <h2 class="slide-title">데이터 모델</h2>
+      <span class="slide-sub">SCHEMA</span>
+    </header>
+    <div class="content">
+      <div class="schemas">
+        <div class="schema">
+          <div class="schema-name">users</div>
+          <div class="schema-field"><span class="key">id</span>: <span class="type">"Y" | "H"</span></div>
+          <div class="schema-field"><span class="key">name</span>: <span class="type">string</span></div>
+          <div class="schema-field"><span class="key">passwordHash</span>: <span class="type">string</span></div>
+          <div class="schema-field"><span class="key">avatar</span>: <span class="type">string</span></div>
+        </div>
+        <div class="schema">
+          <div class="schema-name">essays</div>
+          <div class="schema-field"><span class="key">author</span>: <span class="type">"Y" | "H"</span></div>
+          <div class="schema-field"><span class="key">title, content</span></div>
+          <div class="schema-field"><span class="key">images[], tags[]</span></div>
+          <div class="schema-field"><span class="key">status</span>: <span class="type">draft|published</span></div>
+          <div class="schema-field"><span class="key">comments[]</span> 서브컬렉션</div>
+        </div>
+        <div class="schema">
+          <div class="schema-name">relays</div>
+          <div class="schema-field"><span class="key">title, status</span></div>
+          <div class="schema-field"><span class="key">maxChars</span>: <span class="type">200</span></div>
+          <div class="schema-field"><span class="key">yAgreedComplete</span>: <span class="type">bool</span></div>
+          <div class="schema-field"><span class="key">hAgreedComplete</span>: <span class="type">bool</span></div>
+          <div class="schema-field"><span class="key">sentences[]</span> 서브컬렉션</div>
+        </div>
+        <div class="schema">
+          <div class="schema-name">keywords</div>
+          <div class="schema-field"><span class="key">keyword</span>: <span class="type">string</span></div>
+          <div class="schema-field"><span class="key">suggestedAt</span></div>
+          <div class="schema-field"><span class="key">yEssay</span>: <span class="type">obj | null</span></div>
+          <div class="schema-field"><span class="key">hEssay</span>: <span class="type">obj | null</span></div>
+          <div class="schema-field"><span class="key">status</span>: waiting / both_done</div>
+        </div>
+        <div class="schema">
+          <div class="schema-name">bookclubs</div>
+          <div class="schema-field"><span class="key">bookTitle, bookAuthor</span></div>
+          <div class="schema-field"><span class="key">audioUrl, duration</span></div>
+          <div class="schema-field"><span class="key">transcript[]</span>: <span class="type">{speaker,text}</span></div>
+          <div class="schema-field"><span class="key">status</span>: processing/review/published</div>
+        </div>
+        <div class="schema">
+          <div class="schema-name">photostories</div>
+          <div class="schema-field"><span class="key">photos[]</span>: <span class="type">Storage URL</span></div>
+          <div class="schema-field"><span class="key">photoAuthor</span>: <span class="type">"Y" | "H"</span></div>
+          <div class="schema-field"><span class="key">text, textAuthor</span></div>
+          <div class="schema-field"><span class="key">status</span>: waiting / completed</div>
+          <div class="schema-field"><span class="key">comments[]</span> 서브컬렉션</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 16. 로드맵 -->
+  <section class="slide">
+    <header class="slide-header">
+      <span class="slide-num">12</span>
+      <h2 class="slide-title">개발 로드맵</h2>
+      <span class="slide-sub">13일 · 6단계</span>
+    </header>
+    <div class="content">
+      <div class="roadmap">
+        <div class="phase">
+          <div><div class="phase-label">Phase 1</div><div class="phase-days">Day 1~3</div></div>
+          <div class="phase-tasks">뼈대 · 인증 · 에세이 / 프로젝트 세팅, 디자인 시스템, Y/H 로그인, 에세이 CRUD, 나란히 읽기 뷰어, 모바일 탭, 댓글, 홈</div>
+        </div>
+        <div class="phase">
+          <div><div class="phase-label">Phase 2</div><div class="phase-days">Day 4~5</div></div>
+          <div class="phase-tasks">이어쓰기 / relay 코드 커스터마이징, 작성자 ??? 표시, 연속 작성 방지, 200자 제한, 쌍방 완결 동의</div>
+        </div>
+        <div class="phase">
+          <div><div class="phase-label">Phase 3</div><div class="phase-days">Day 6~7</div></div>
+          <div class="phase-tasks">AI 키워드 에세이 / 키워드 생성 API, 블라인드 시스템, 둘 다 완성 시 동시 공개, 나란히 읽기 연동</div>
+        </div>
+        <div class="phase">
+          <div><div class="phase-label">Phase 4</div><div class="phase-days">Day 8~9</div></div>
+          <div class="phase-tasks">독서 모임 / 녹음 업로드, Whisper API, AI 화자 구분, 메신저 스타일 디자인, 검수 후 공개</div>
+        </div>
+        <div class="phase">
+          <div><div class="phase-label">Phase 5</div><div class="phase-days">Day 10~11</div></div>
+          <div class="phase-tasks">사진+글 / 사진 업로드, 글쓰기 요청, 갤러리 그리드, 슬라이드 갤러리, 필터(전체/H→Y/Y→H)</div>
+        </div>
+        <div class="phase">
+          <div><div class="phase-label">Phase 6</div><div class="phase-days">Day 12~13</div></div>
+          <div class="phase-tasks">마무리 / About 페이지, SEO/OG 이미지, 반응형 점검, 배포 + 도메인 연결</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 17. 디자인 -->
+  <section class="slide">
+    <header class="slide-header">
+      <span class="slide-num">13</span>
+      <h2 class="slide-title">디자인 시스템</h2>
+      <span class="slide-sub">VISUAL</span>
+    </header>
+    <div class="content">
+      <div class="palette">
+        <div class="swatch y">
+          <div class="swatch-letter">영</div>
+          <div class="swatch-name">Y · 따뜻한 골드/앰버</div>
+          <div class="swatch-hex">#c8954a · #f4e9d2</div>
+        </div>
+        <div class="swatch h">
+          <div class="swatch-letter">희</div>
+          <div class="swatch-name">H · 차분한 블루/인디고</div>
+          <div class="swatch-hex">#4a5a8a · #d8dde8</div>
+        </div>
+      </div>
+      <div class="content-grid two-col">
+        <div class="card">
+          <div class="card-title">타이포그래피</div>
+          <div class="card-body">
+            본문 · UI → Pretendard Variable<br/>
+            제목 · 에세이 → Noto Serif KR<br/>
+            한글 본문은 line-height 1.9로 넉넉히
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">분위기</div>
+          <div class="card-body">
+            종이 질감 배경 · 노이즈 텍스처<br/>
+            Y|H 컬러는 은은하게 (보더, 라벨에만)<br/>
+            여백 충분히, 글에 집중하게
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 18. 특별한 점 -->
+  <section class="slide">
+    <header class="slide-header">
+      <span class="slide-num">14</span>
+      <h2 class="slide-title">특별한 점</h2>
+      <span class="slide-sub">WHY</span>
+    </header>
+    <div class="content">
+      <div class="specials">
+        <div class="special">
+          <div class="special-num">01</div>
+          <div class="special-text">세상에 딱 <strong>2명만을 위한</strong> 서비스</div>
+        </div>
+        <div class="special">
+          <div class="special-num">02</div>
+          <div class="special-text">같은 주제, 다른 시선 — <strong>나란히 읽는</strong> 경험</div>
+        </div>
+        <div class="special">
+          <div class="special-num">03</div>
+          <div class="special-text">AI 키워드의 <strong>블라인드 + 동시 공개</strong> 서프라이즈</div>
+        </div>
+        <div class="special">
+          <div class="special-num">04</div>
+          <div class="special-text">독서 대화를 <strong>녹음→텍스트→예쁜 디자인</strong>으로</div>
+        </div>
+        <div class="special">
+          <div class="special-num">05</div>
+          <div class="special-text">이어쓰기에서 <strong>작성자 미공개</strong> → 글 자체에 집중</div>
+        </div>
+        <div class="special">
+          <div class="special-num">06</div>
+          <div class="special-text">사진+글 — 한 사람의 사진이 <strong>다른 사람의 언어를 만나는</strong> 콜라보</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 19. 마무리 -->
+  <section class="slide ending">
+    <p class="ending-quote">
+      <span class="ending-y">영</span>이 쓰고, <span class="ending-h">희</span>가 읽는다.<br/>
+      <span class="ending-h">희</span>가 찍고, <span class="ending-y">영</span>이 쓴다.<br/>
+      두 동인이 함께 쌓아가는 작업실.
+    </p>
+    <p class="ending-sign">Y &amp; H · 영희네 작업실</p>
+  </section>
+
+</div>
+
+<nav class="nav">
+  <button class="nav-btn" id="prev" aria-label="이전">‹</button>
+  <span class="nav-counter" id="counter">01 / 19</span>
+  <button class="nav-btn" id="next" aria-label="다음">›</button>
+</nav>
+
+<div class="keyhint">← → SPACE</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  const prevBtn = document.getElementById('prev');
+  const nextBtn = document.getElementById('next');
+
+  function go(i) {
+    if (i < 0 || i >= total) return;
+    slides[current].classList.remove('active');
+    current = i;
+    slides[current].classList.add('active');
+    slides[current].scrollTop = 0;
+    update();
+  }
+  function update() {
+    counter.textContent = String(current + 1).padStart(2, '0') + ' / ' + String(total).padStart(2, '0');
+    progress.style.width = ((current + 1) / total * 100) + '%';
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === total - 1;
+  }
+  prevBtn.addEventListener('click', () => go(current - 1));
+  nextBtn.addEventListener('click', () => go(current + 1));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); go(current + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(current - 1); }
+    if (e.key === 'Home') { e.preventDefault(); go(0); }
+    if (e.key === 'End') { e.preventDefault(); go(total - 1); }
+  });
+  // 터치 스와이프
+  let touchStart = 0;
+  document.addEventListener('touchstart', e => { touchStart = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    const diff = e.changedTouches[0].clientX - touchStart;
+    if (Math.abs(diff) < 50) return;
+    if (diff < 0) go(current + 1); else go(current - 1);
+  }, { passive: true });
+
+  update();
+</script>
+</body>
+</html>
