@@ -69,3 +69,23 @@ export type Keyword = {
   hEssay: KeywordEssay | null;
   status: KeywordStatus;
 };
+
+export type BookclubTranscriptLine = {
+  speaker: UserId;
+  text: string;
+};
+
+export type BookclubStatus = "processing" | "review" | "published";
+
+export type Bookclub = {
+  id: string;
+  bookTitle: string;
+  bookAuthor: string;
+  meetingDate: string;
+  duration: string;
+  audioUrl: string | null;
+  transcript: BookclubTranscriptLine[];
+  status: BookclubStatus;
+  createdAt: number;
+  publishedAt: number | null;
+};

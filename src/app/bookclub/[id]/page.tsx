@@ -1,14 +1,16 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { getBookclub } from "@/lib/mock-bookclubs";
+import { getBookclub } from "@/lib/bookclubs";
 import BookclubAudio from "@/components/BookclubAudio";
 import Comments from "@/components/Comments";
+
+export const dynamic = "force-dynamic";
 
 type Props = { params: { id: string } };
 
 export async function generateMetadata({ params }: Props) {
-  const b = getBookclub(params.id);
+  const b = await getBookclub(params.id);
   return { title: b ? `${b.bookTitle} — 독서모임` : "독서모임" };
 }
 
@@ -16,6 +18,12 @@ export default async function BookclubDetailPage({ params }: Props) {
   const [b, session] = await Promise.all([getBookclub(params.id), auth()]);
   if (!b) notFound();
   const isYH = !!session?.user?.id;
+
+  // 검수 중인 모임은 Y/H면 review로 이동, 비로그인이면 안 보임
+  if (b.status !== "published") {
+    if (isYH) redirect(`/bookclub/${b.id}/review`);
+    notFound();
+  }
 
   return (
     <div className="container narrow fade-in" style={{ maxWidth: 720 }}>

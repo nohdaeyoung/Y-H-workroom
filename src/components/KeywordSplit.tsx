@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import type { KeywordEssay } from "@/lib/mock-keywords";
+import parse from "html-react-parser";
+import DOMPurify from "isomorphic-dompurify";
+import type { KeywordEssay } from "@/types/domain";
 
 function formatDate(ts: number) {
   const d = new Date(ts);
@@ -110,9 +112,9 @@ function Pane({
               fontSize: 16,
             }}
           >
-            {essay.content
-              .split("\n")
-              .map((p, i) => (p.trim() ? <p key={i}>{p}</p> : null))}
+            {parse(
+              DOMPurify.sanitize(essay.content, { USE_PROFILES: { html: true } })
+            )}
           </div>
         </>
       )}

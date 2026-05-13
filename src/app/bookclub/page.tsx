@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { auth } from "@/auth";
-import { MOCK_BOOKCLUBS } from "@/lib/mock-bookclubs";
+import { listBookclubs } from "@/lib/bookclubs";
+import type { Bookclub } from "@/types/domain";
 
 export const metadata = { title: "독서모임 — 영희네 작업실" };
+export const dynamic = "force-dynamic";
 
 function BookSpine({ title, hue }: { title: string; hue: number }) {
   return (
@@ -48,12 +50,56 @@ function BookSpine({ title, hue }: { title: string; hue: number }) {
   );
 }
 
+function BookclubCard({ b }: { b: Bookclub }) {
+  const draft = b.status !== "published";
+  return (
+    <Link
+      href={draft ? `/bookclub/${b.id}/review` : `/bookclub/${b.id}`}
+      className="card lift"
+      style={{ padding: "20px 22px" }}
+    >
+      <div className="row gap-20" style={{ flexWrap: "wrap" }}>
+        <BookSpine
+          title={b.bookTitle}
+          hue={30 + (b.bookTitle.charCodeAt(0) * 7) % 200}
+        />
+        <div className="flex-1">
+          <div className="row gap-8" style={{ flexWrap: "wrap" }}>
+            <span className="hand" style={{ fontSize: 17, color: "var(--ink-3)" }}>
+              독서모임 #{b.id.slice(-4)}
+            </span>
+            {draft && (
+              <span className="chip wait">검수 중</span>
+            )}
+          </div>
+          <h3 className="serif" style={{ fontSize: 20, marginTop: 2 }}>
+            「{b.bookTitle}」
+          </h3>
+          <div className="meta" style={{ marginTop: 4 }}>
+            {b.bookAuthor}
+          </div>
+          <div className="row gap-12" style={{ marginTop: 12, flexWrap: "wrap" }}>
+            <span className="meta">📅 {b.meetingDate}</span>
+            {b.duration && <span className="meta">⏱ {b.duration}</span>}
+            <span className="meta">💬 {b.transcript.length}줄</span>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 export default async function BookclubListPage() {
   const session = await auth();
+  const isYH = !!session?.user?.id;
+  const items = await listBookclubs({ includeDrafts: isYH });
+
+  const published = items.filter((b) => b.status === "published");
+  const drafts = items.filter((b) => b.status !== "published");
 
   return (
     <div className="container narrow fade-in" style={{ maxWidth: 760 }}>
-      <div className="row-between" style={{ marginBottom: 28 }}>
+      <div className="row-between" style={{ marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
         <div>
           <div className="hand" style={{ fontSize: 22, color: "var(--ink-3)" }}>
             book club
@@ -63,46 +109,44 @@ export default async function BookclubListPage() {
             한 권의 책, 한 시간의 대화.
           </div>
         </div>
-        {session?.user?.id && (
-          <button type="button" className="btn btn-primary" disabled title="Phase 4">
-            <span>🎙</span> 녹음 업로드
-          </button>
+        {isYH && (
+          <Link href="/bookclub/new" className="btn btn-primary">
+            <span>＋</span> 새 모임 추가
+          </Link>
         )}
       </div>
 
-      <div className="col gap-16">
-        {MOCK_BOOKCLUBS.map((b, i) => (
-          <Link
-            key={b.id}
-            href={`/bookclub/${b.id}`}
-            className="card lift"
-            style={{ padding: "20px 22px" }}
-          >
-            <div className="row gap-20" style={{ flexWrap: "wrap" }}>
-              <BookSpine
-                title={b.bookTitle}
-                hue={30 + (b.bookTitle.charCodeAt(0) * 7) % 200}
-              />
-              <div className="flex-1">
-                <div className="hand" style={{ fontSize: 17, color: "var(--ink-3)" }}>
-                  독서모임 #{b.id.split("-")[1]}
-                </div>
-                <h3 className="serif" style={{ fontSize: 20, marginTop: 2 }}>
-                  「{b.bookTitle}」
-                </h3>
-                <div className="meta" style={{ marginTop: 4 }}>
-                  {b.bookAuthor}
-                </div>
-                <div className="row gap-12" style={{ marginTop: 12, flexWrap: "wrap" }}>
-                  <span className="meta">📅 {b.meetingDate}</span>
-                  <span className="meta">⏱ {b.duration}</span>
-                  {b.comments > 0 && <span className="meta">💬 {b.comments}</span>}
-                </div>
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
+      {isYH && drafts.length > 0 && (
+        <>
+          <h3 className="section-title" style={{ marginBottom: 12 }}>
+            검수 중
+          </h3>
+          <div className="col gap-16" style={{ marginBottom: 32 }}>
+            {drafts.map((b) => (
+              <BookclubCard key={b.id} b={b} />
+            ))}
+          </div>
+        </>
+      )}
+
+      {published.length === 0 ? (
+        <div className="card-flat center" style={{ padding: 48, color: "var(--ink-3)" }}>
+          <span className="hand" style={{ fontSize: 18 }}>아직 비어 있어요</span>
+        </div>
+      ) : (
+        <>
+          {isYH && drafts.length > 0 && (
+            <h3 className="section-title" style={{ marginBottom: 12 }}>
+              공개된 모임
+            </h3>
+          )}
+          <div className="col gap-16">
+            {published.map((b) => (
+              <BookclubCard key={b.id} b={b} />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
