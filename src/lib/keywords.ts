@@ -167,6 +167,57 @@ export type WriteResult =
   | { ok: true; keyword: Keyword }
   | { ok: false; error: string; code: number };
 
+export async function updateKeywordWord(
+  id: string,
+  text: string
+): Promise<void> {
+  const db = getDbOrThrow();
+  await db
+    .collection(COLLECTION)
+    .doc(id)
+    .update({ keyword: text.trim().slice(0, 30) });
+}
+
+export async function updateKeywordEssayContent(
+  id: string,
+  author: UserId,
+  title: string,
+  content: string
+): Promise<{ ok: boolean; error?: string }> {
+  const db = getDbOrThrow();
+  const ref = db.collection(COLLECTION).doc(id);
+  const doc = await ref.get();
+  if (!doc.exists) return { ok: false, error: "키워드를 찾을 수 없어요" };
+  const data = doc.data() as Keyword;
+  const mine = author === "Y" ? data.yEssay : data.hEssay;
+  if (!mine) return { ok: false, error: "아직 쓴 글이 없어요" };
+  const cleanTitle = title.trim().slice(0, 100);
+  const cleanContent = content.slice(0, MAX_CONTENT_LEN);
+  if (!cleanTitle) return { ok: false, error: "제목을 적어주세요" };
+  if (!cleanContent.replace(/<[^>]+>/g, "").trim())
+    return { ok: false, error: "본문을 적어주세요" };
+  const next = { ...mine, title: cleanTitle, content: cleanContent };
+  const patch =
+    author === "Y" ? { yEssay: next } : { hEssay: next };
+  await ref.update(patch);
+  return { ok: true };
+}
+
+export async function deleteKeywordEssay(
+  id: string,
+  author: UserId
+): Promise<void> {
+  const db = getDbOrThrow();
+  const ref = db.collection(COLLECTION).doc(id);
+  const doc = await ref.get();
+  if (!doc.exists) return;
+  const data = doc.data() as Keyword;
+  const yEssay = author === "Y" ? null : data.yEssay;
+  const hEssay = author === "H" ? null : data.hEssay;
+  const status = computeStatus(yEssay, hEssay);
+  await ref.update({ yEssay, hEssay, status });
+}
+
 export async function writeKeywordEssay(
   input: WriteKeywordEssayInput
 ): Promise<WriteResult> {

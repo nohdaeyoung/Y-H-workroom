@@ -8,6 +8,7 @@ import {
   publishBookclub,
   unpublishBookclub,
   updateBookclubCover,
+  updateBookclubMeta,
   updateBookclubTranscript,
 } from "@/lib/bookclubs";
 import type { BookclubTranscriptLine, UserId } from "@/types/domain";
@@ -85,6 +86,33 @@ export async function saveTranscriptAction(
   await updateBookclubTranscript(id, lines);
   revalidatePath(`/bookclub/${id}/review`);
   revalidatePath(`/bookclub/${id}`);
+  return { error: "", ok: true };
+}
+
+export async function updateMetaAction(
+  _prev: BookclubActionState,
+  formData: FormData
+): Promise<BookclubActionState> {
+  const session = await auth();
+  const uid = session?.user?.id;
+  if (uid !== "Y" && uid !== "H") return { error: "로그인이 필요해요" };
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { error: "잘못된 요청" };
+  const bookTitle = String(formData.get("bookTitle") ?? "").trim();
+  const bookAuthor = String(formData.get("bookAuthor") ?? "").trim();
+  const meetingDate = String(formData.get("meetingDate") ?? "").trim();
+  const duration = String(formData.get("duration") ?? "").trim();
+  if (!bookTitle || !bookAuthor || !meetingDate)
+    return { error: "책 제목/저자/날짜는 필수예요" };
+  await updateBookclubMeta(id, {
+    bookTitle,
+    bookAuthor,
+    meetingDate,
+    duration,
+  });
+  revalidatePath(`/bookclub/${id}`);
+  revalidatePath(`/bookclub/${id}/review`);
+  revalidatePath("/bookclub");
   return { error: "", ok: true };
 }
 

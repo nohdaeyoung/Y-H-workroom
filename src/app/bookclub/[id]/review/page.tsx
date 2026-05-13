@@ -5,6 +5,7 @@ import { getBookclub } from "@/lib/bookclubs";
 import BookclubReviewClient from "@/components/BookclubReviewClient";
 import BookclubAudioUploader from "@/components/BookclubAudioUploader";
 import BookclubCoverUploader from "@/components/BookclubCoverUploader";
+import BookclubMetaForm from "@/components/BookclubMetaForm";
 import {
   publishAction,
   unpublishAction,
@@ -61,6 +62,14 @@ export default async function BookclubReviewPage({ params }: Props) {
           )}
         </div>
       </div>
+
+      <BookclubMetaForm
+        id={b.id}
+        bookTitle={b.bookTitle}
+        bookAuthor={b.bookAuthor}
+        meetingDate={b.meetingDate}
+        duration={b.duration}
+      />
 
       <BookclubCoverUploader
         bookclubId={b.id}

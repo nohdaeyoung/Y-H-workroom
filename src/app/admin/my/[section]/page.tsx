@@ -70,6 +70,7 @@ async function getItems(section: Section, uid: UserId): Promise<ListItem[]> {
       dateLabel: formatDate(r.updatedAt),
       comments: 0,
       href: `/relay/${r.id}`,
+      editHref: `/relay/${r.id}/edit`,
     }));
   }
   if (section === "keyword") {
@@ -86,6 +87,7 @@ async function getItems(section: Section, uid: UserId): Promise<ListItem[]> {
           dateLabel: formatDate(k.suggestedAt),
           comments: 0,
           href: `/keyword/${k.id}`,
+          editHref: `/keyword/${k.id}/edit`,
         };
       });
   }
@@ -115,6 +117,7 @@ async function getItems(section: Section, uid: UserId): Promise<ListItem[]> {
         dateLabel: formatDate(p.photoUploadedAt),
         comments: 0,
         href: `/photostory/${p.id}`,
+        editHref: `/photostory/${p.id}/edit`,
       }));
   }
   return [];

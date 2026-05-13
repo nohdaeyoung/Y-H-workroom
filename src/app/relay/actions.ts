@@ -62,6 +62,58 @@ export async function appendSentenceAction(
   return { error: "", ok: true };
 }
 
+export async function updateRelayTitleAction(
+  _prev: RelayActionState,
+  formData: FormData
+): Promise<RelayActionState> {
+  const session = await auth();
+  const uid = session?.user?.id;
+  if (uid !== "Y" && uid !== "H") return { error: "로그인이 필요해요" };
+  const id = String(formData.get("relayId") ?? "");
+  const title = String(formData.get("title") ?? "").trim();
+  if (!id) return { error: "잘못된 요청" };
+  if (!title) return { error: "제목을 적어주세요" };
+  const { updateRelayTitle } = await import("@/lib/relays");
+  await updateRelayTitle(id, title);
+  revalidatePath(`/relay/${id}`);
+  revalidatePath(`/relay/${id}/edit`);
+  revalidatePath("/relay");
+  return { error: "", ok: true };
+}
+
+export async function updateSentenceAction(
+  _prev: RelayActionState,
+  formData: FormData
+): Promise<RelayActionState> {
+  const session = await auth();
+  const author = session?.user?.id;
+  if (author !== "Y" && author !== "H")
+    return { error: "로그인이 필요해요" };
+  const relayId = String(formData.get("relayId") ?? "");
+  const sentenceId = String(formData.get("sentenceId") ?? "");
+  const text = String(formData.get("text") ?? "");
+  if (!relayId || !sentenceId) return { error: "잘못된 요청" };
+  const { updateSentenceText } = await import("@/lib/relays");
+  const res = await updateSentenceText(relayId, sentenceId, text, author);
+  if (!res.ok) return { error: res.error ?? "수정 실패" };
+  revalidatePath(`/relay/${relayId}`);
+  revalidatePath(`/relay/${relayId}/edit`);
+  return { error: "", ok: true };
+}
+
+export async function deleteRelayAction(formData: FormData) {
+  "use server";
+  const session = await auth();
+  const uid = session?.user?.id;
+  if (uid !== "Y" && uid !== "H") return;
+  const id = String(formData.get("relayId") ?? "");
+  if (!id) return;
+  const { deleteRelay } = await import("@/lib/relays");
+  await deleteRelay(id);
+  revalidatePath("/relay");
+  redirect("/relay");
+}
+
 export async function toggleAgreeAction(formData: FormData) {
   "use server";
   const session = await auth();

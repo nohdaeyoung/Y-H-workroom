@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import {
   createPhotostory,
   deletePhotostory,
+  updatePhotostory,
   writePhotostoryText,
 } from "@/lib/photostories";
 
@@ -69,6 +70,54 @@ export async function writePhotostoryTextAction(
   if (!res.ok) return { error: res.error };
 
   revalidatePath(`/photostory/${id}`);
+  revalidatePath("/photostory");
+  return { error: "", ok: true };
+}
+
+export async function updatePhotostoryAction(
+  _prev: PhotostoryActionState,
+  formData: FormData
+): Promise<PhotostoryActionState> {
+  const session = await auth();
+  const uid = session?.user?.id;
+  if (uid !== "Y" && uid !== "H") return { error: "로그인이 필요해요" };
+
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { error: "잘못된 요청" };
+
+  const photoTitle = formData.has("photoTitle")
+    ? String(formData.get("photoTitle") ?? "")
+    : undefined;
+  const photosRaw = formData.has("photos")
+    ? String(formData.get("photos") ?? "[]")
+    : undefined;
+  const textRaw = formData.has("text")
+    ? String(formData.get("text") ?? "")
+    : undefined;
+
+  let photos: string[] | undefined;
+  if (photosRaw !== undefined) {
+    try {
+      const parsed = JSON.parse(photosRaw);
+      if (!Array.isArray(parsed)) throw new Error("not array");
+      photos = parsed
+        .filter((u) => typeof u === "string" && u.startsWith("http"))
+        .slice(0, 5);
+    } catch {
+      return { error: "사진 정보가 잘못됐어요" };
+    }
+  }
+
+  let text: string | undefined;
+  if (textRaw !== undefined) {
+    text = DOMPurify.sanitize(textRaw, { USE_PROFILES: { html: true } });
+  }
+
+  const res = await updatePhotostory(id, uid, { photoTitle, photos, text });
+  if (!res.ok) return { error: res.error ?? "수정 실패" };
+
+  revalidatePath(`/photostory/${id}`);
+  revalidatePath(`/photostory/${id}/edit`);
   revalidatePath("/photostory");
   return { error: "", ok: true };
 }

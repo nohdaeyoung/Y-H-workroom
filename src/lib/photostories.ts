@@ -126,6 +126,64 @@ export async function writePhotostoryText(
   };
 }
 
+export type UpdatePhotostoryInput = {
+  photoTitle?: string;
+  photos?: string[];
+  text?: string | null;
+};
+
+export async function updatePhotostory(
+  id: string,
+  uid: UserId,
+  patch: UpdatePhotostoryInput
+): Promise<{ ok: boolean; error?: string }> {
+  const db = getDbOrThrow();
+  const ref = db.collection(COLLECTION).doc(id);
+  const doc = await ref.get();
+  if (!doc.exists) return { ok: false, error: "찾을 수 없어요" };
+  const p = { id: doc.id, ...(doc.data() as Omit<Photostory, "id">) } as Photostory;
+
+  const update: Record<string, unknown> = {};
+
+  if (patch.photoTitle !== undefined || patch.photos !== undefined) {
+    if (p.photoAuthor !== uid)
+      return { ok: false, error: "사진 작성자만 사진/제목을 수정할 수 있어요" };
+    if (patch.photoTitle !== undefined)
+      update.photoTitle = patch.photoTitle.trim().slice(0, 100);
+    if (patch.photos !== undefined) {
+      if (patch.photos.length === 0)
+        return { ok: false, error: "사진은 1장 이상" };
+      update.photos = patch.photos.slice(0, 5);
+    }
+  }
+
+  if (patch.text !== undefined) {
+    if (p.textAuthor !== uid)
+      return { ok: false, error: "글 작성자만 글을 수정할 수 있어요" };
+    if (patch.text === null) {
+      update.text = null;
+      update.textWrittenAt = null;
+      update.status = "waiting";
+    } else {
+      const plain = patch.text.replace(/<[^>]+>/g, "").trim();
+      if (!plain) return { ok: false, error: "내용을 적어주세요" };
+      if (patch.text.length > 10000)
+        return { ok: false, error: "본문이 너무 길어요" };
+      update.text = patch.text;
+      if (!p.textWrittenAt) {
+        update.textWrittenAt = Date.now();
+        update.status = "completed";
+      }
+    }
+  }
+
+  if (Object.keys(update).length === 0)
+    return { ok: false, error: "변경 사항이 없어요" };
+
+  await ref.update(update);
+  return { ok: true };
+}
+
 export async function deletePhotostory(id: string): Promise<void> {
   const db = getDbOrThrow();
   await db.collection(COLLECTION).doc(id).delete();

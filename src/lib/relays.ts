@@ -194,6 +194,55 @@ export async function appendSentence(
   };
 }
 
+export async function updateRelayTitle(
+  id: string,
+  title: string
+): Promise<void> {
+  const db = getDbOrThrow();
+  await db
+    .collection(COLLECTION)
+    .doc(id)
+    .update({ title: title.trim().slice(0, 100), updatedAt: Date.now() });
+}
+
+export async function updateSentenceText(
+  relayId: string,
+  sentenceId: string,
+  text: string,
+  author: UserId
+): Promise<{ ok: boolean; error?: string }> {
+  const db = getDbOrThrow();
+  const ref = db.collection(COLLECTION).doc(relayId);
+  const sentRef = ref.collection("sentences").doc(sentenceId);
+  const sentDoc = await sentRef.get();
+  if (!sentDoc.exists)
+    return { ok: false, error: "문장을 찾을 수 없어요" };
+  const sentData = sentDoc.data() as { author: UserId; order: number };
+  if (sentData.author !== author)
+    return { ok: false, error: "본인 문장만 수정할 수 있어요" };
+  const trimmed = text.trim().slice(0, 200);
+  if (!trimmed) return { ok: false, error: "내용을 적어주세요" };
+  await sentRef.update({ text: trimmed });
+  // 마지막 문장이면 lastSentenceText 동기화
+  const relay = (await ref.get()).data() as Relay | undefined;
+  if (relay && sentData.order === relay.sentenceCount - 1) {
+    await ref.update({ lastSentenceText: trimmed, updatedAt: Date.now() });
+  } else if (sentData.order === 0) {
+    await ref.update({ firstSentenceText: trimmed });
+  }
+  return { ok: true };
+}
+
+export async function deleteRelay(relayId: string): Promise<void> {
+  const db = getDbOrThrow();
+  const ref = db.collection(COLLECTION).doc(relayId);
+  const sents = await ref.collection("sentences").get();
+  const batch = db.batch();
+  sents.docs.forEach((d) => batch.delete(d.ref));
+  batch.delete(ref);
+  await batch.commit();
+}
+
 export async function toggleAgree(
   relayId: string,
   author: UserId,

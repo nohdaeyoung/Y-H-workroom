@@ -110,6 +110,31 @@ export async function updateBookclubCover(
   await db.collection(COLLECTION).doc(id).update({ coverUrl });
 }
 
+export type UpdateBookclubMetaInput = {
+  bookTitle?: string;
+  bookAuthor?: string;
+  meetingDate?: string;
+  duration?: string;
+};
+
+export async function updateBookclubMeta(
+  id: string,
+  patch: UpdateBookclubMetaInput
+): Promise<void> {
+  const db = getDbOrThrow();
+  const update: Record<string, unknown> = {};
+  if (patch.bookTitle !== undefined)
+    update.bookTitle = patch.bookTitle.trim().slice(0, 200);
+  if (patch.bookAuthor !== undefined)
+    update.bookAuthor = patch.bookAuthor.trim().slice(0, 200);
+  if (patch.meetingDate !== undefined)
+    update.meetingDate = patch.meetingDate.trim().slice(0, 50);
+  if (patch.duration !== undefined)
+    update.duration = patch.duration.trim().slice(0, 50);
+  if (Object.keys(update).length === 0) return;
+  await db.collection(COLLECTION).doc(id).update(update);
+}
+
 export async function updateBookclubTranscript(
   id: string,
   transcript: BookclubTranscriptLine[]
