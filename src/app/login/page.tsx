@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { auth, isGoogleEnabled } from "@/auth";
+import { googleSignInAction } from "./actions";
 import LoginForm from "./LoginForm";
 
 export const metadata = { title: "로그인 — 영희네 작업실" };
@@ -50,33 +51,44 @@ export default async function LoginPage({ searchParams }: Props) {
           <div style={{ flex: 1, height: 1, background: "var(--line)" }} />
         </div>
 
-        <button
-          type="button"
-          className="btn"
-          style={{ width: "100%", opacity: 0.5, cursor: "not-allowed" }}
-          disabled
-          title="구글 연동은 어드민에서 추가하면 활성화돼요"
-        >
-          <svg width="16" height="16" viewBox="0 0 48 48" style={{ marginRight: 4 }}>
-            <path
-              fill="#FFC107"
-              d="M43.6 20.5H42V20H24v8h11.3a12 12 0 0 1-11.3 8 12 12 0 1 1 7.9-21l5.7-5.7A20 20 0 1 0 44 24c0-1.2-.1-2.4-.4-3.5z"
+        {isGoogleEnabled() ? (
+          <form action={googleSignInAction}>
+            <input
+              type="hidden"
+              name="callbackUrl"
+              value={searchParams?.from || "/"}
             />
-            <path
-              fill="#FF3D00"
-              d="M6.3 14.7l6.6 4.8A12 12 0 0 1 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7A20 20 0 0 0 6.3 14.7z"
-            />
-            <path
-              fill="#4CAF50"
-              d="M24 44a20 20 0 0 0 13.4-5.2l-6.2-5.2A12 12 0 0 1 12.7 28.4l-6.5 5A20 20 0 0 0 24 44z"
-            />
-            <path
-              fill="#1976D2"
-              d="M43.6 20.5H42V20H24v8h11.3a12 12 0 0 1-4.1 5.6l6.2 5.2c-.4.4 6.6-4.8 6.6-14.8 0-1.2-.1-2.4-.4-3.5z"
-            />
-          </svg>
-          구글로 계속 (연동 후)
-        </button>
+            <button
+              type="submit"
+              className="btn"
+              style={{ width: "100%" }}
+            >
+              <svg width="16" height="16" viewBox="0 0 48 48" style={{ marginRight: 4 }}>
+                <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3a12 12 0 0 1-11.3 8 12 12 0 1 1 7.9-21l5.7-5.7A20 20 0 1 0 44 24c0-1.2-.1-2.4-.4-3.5z" />
+                <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8A12 12 0 0 1 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7A20 20 0 0 0 6.3 14.7z" />
+                <path fill="#4CAF50" d="M24 44a20 20 0 0 0 13.4-5.2l-6.2-5.2A12 12 0 0 1 12.7 28.4l-6.5 5A20 20 0 0 0 24 44z" />
+                <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3a12 12 0 0 1-4.1 5.6l6.2 5.2c-.4.4 6.6-4.8 6.6-14.8 0-1.2-.1-2.4-.4-3.5z" />
+              </svg>
+              구글로 계속
+            </button>
+          </form>
+        ) : (
+          <button
+            type="button"
+            className="btn"
+            style={{ width: "100%", opacity: 0.5, cursor: "not-allowed" }}
+            disabled
+            title="GOOGLE_CLIENT_ID/SECRET 환경변수가 설정돼야 활성화됩니다"
+          >
+            <svg width="16" height="16" viewBox="0 0 48 48" style={{ marginRight: 4 }}>
+              <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3a12 12 0 0 1-11.3 8 12 12 0 1 1 7.9-21l5.7-5.7A20 20 0 1 0 44 24c0-1.2-.1-2.4-.4-3.5z" />
+              <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8A12 12 0 0 1 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7A20 20 0 0 0 6.3 14.7z" />
+              <path fill="#4CAF50" d="M24 44a20 20 0 0 0 13.4-5.2l-6.2-5.2A12 12 0 0 1 12.7 28.4l-6.5 5A20 20 0 0 0 24 44z" />
+              <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3a12 12 0 0 1-4.1 5.6l6.2 5.2c-.4.4 6.6-4.8 6.6-14.8 0-1.2-.1-2.4-.4-3.5z" />
+            </svg>
+            구글로 계속 (연동 후)
+          </button>
+        )}
 
         <div
           className="meta"

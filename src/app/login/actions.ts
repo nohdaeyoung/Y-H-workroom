@@ -38,3 +38,9 @@ export async function loginAction(
 export async function logoutAction() {
   await signOut({ redirectTo: "/" });
 }
+
+export async function googleSignInAction(formData: FormData) {
+  "use server";
+  const callbackUrl = String(formData.get("callbackUrl") ?? "/");
+  await signIn("google", { redirectTo: callbackUrl });
+}

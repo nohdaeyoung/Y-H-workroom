@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { googleSignInAction } from "@/app/login/actions";
 
 const GoogleIcon = () => (
   <svg width="16" height="16" viewBox="0 0 48 48" style={{ marginRight: 6 }}>
@@ -27,12 +28,22 @@ type Props = {
   userId: "Y" | "H";
   userName: string;
   userCls: "y" | "h";
+  googleEnabled: boolean;
+  userEmail: string;
 };
 
-export default function AdminAccountClient({ userId, userName, userCls }: Props) {
+export default function AdminAccountClient({
+  userId,
+  userName,
+  userCls,
+  googleEnabled,
+  userEmail,
+}: Props) {
   const [displayName, setDisplayName] = useState(userName);
   const [desc, setDesc] = useState("");
-  const [linked, setLinked] = useState(false);
+
+  // userEmail이 google login으로 들어온 거면 이미 연동된 것으로 간주
+  const linked = !!userEmail;
 
   return (
     <>
@@ -110,10 +121,24 @@ export default function AdminAccountClient({ userId, userName, userCls }: Props)
           구글 계정 연동
         </h3>
         <div className="meta" style={{ marginBottom: 16 }}>
-          연동 후에는 구글 로그인도 사용할 수 있어요. 사전 등록된 Y/H의 이메일만
-          허용됩니다.
+          연동 후에는 구글 로그인도 사용할 수 있어요. 사전 등록된 Y/H 이메일(.env의 SEED_*_EMAIL)만 허용됩니다.
         </div>
-        {linked ? (
+
+        {!googleEnabled ? (
+          <div
+            className="card-flat"
+            style={{
+              padding: 14,
+              background: "var(--paper-ink)",
+              border: "1px dashed var(--line-2)",
+              fontSize: 13,
+            }}
+          >
+            <span className="meta">
+              GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET 환경변수를 .env.local에 추가하면 활성화돼요.
+            </span>
+          </div>
+        ) : linked && userEmail ? (
           <div
             className="card-flat"
             style={{
@@ -122,35 +147,34 @@ export default function AdminAccountClient({ userId, userName, userCls }: Props)
               border: "1px solid var(--line)",
             }}
           >
-            <div className="row-between" style={{ flexWrap: "wrap", gap: 8 }}>
-              <div className="row gap-12">
-                <GoogleIcon />
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 500 }}>
-                    yh.{userId.toLowerCase()}@gmail.com
-                  </div>
-                  <div className="meta">방금 연동</div>
-                </div>
+            <div className="row" style={{ gap: 12 }}>
+              <GoogleIcon />
+              <div className="flex-1">
+                <div style={{ fontSize: 14, fontWeight: 500 }}>{userEmail}</div>
+                <div className="meta">현재 세션에서 사용 중인 이메일</div>
               </div>
-              <button
-                type="button"
-                className="btn btn-sm"
-                onClick={() => setLinked(false)}
+              <span
+                className="chip live"
+                style={{ alignSelf: "center", fontSize: 11 }}
               >
-                연동 해제
-              </button>
+                연동됨
+              </span>
             </div>
           </div>
         ) : (
-          <button
-            type="button"
-            className="btn"
-            style={{ width: "100%" }}
-            onClick={() => setLinked(true)}
-          >
-            <GoogleIcon />
-            구글 계정 연동하기 (데모)
-          </button>
+          <form action={googleSignInAction}>
+            <input type="hidden" name="callbackUrl" value="/admin/account" />
+            <button type="submit" className="btn" style={{ width: "100%" }}>
+              <GoogleIcon />
+              구글 계정으로 로그인 (연동)
+            </button>
+            <div
+              className="meta"
+              style={{ marginTop: 8, textAlign: "center", fontSize: 12 }}
+            >
+              ※ Y는 {process.env.NEXT_PUBLIC_APP_URL ? "사전 등록된 이메일" : "Y/H의 사전 등록 이메일"}만 허용
+            </div>
+          </form>
         )}
       </div>
     </>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
-import { logoutAction } from "@/app/login/actions";
+import { auth, isGoogleEnabled } from "@/auth";
+import { googleSignInAction, logoutAction } from "@/app/login/actions";
 import AdminAccountClient from "@/components/AdminAccountClient";
 
 export const metadata = { title: "계정 설정 — 어드민" };
@@ -31,7 +31,13 @@ export default async function AdminAccountPage() {
         <h1 className="page-title">계정 설정</h1>
       </div>
 
-      <AdminAccountClient userId={id} userName={name} userCls={cls} />
+      <AdminAccountClient
+        userId={id}
+        userName={name}
+        userCls={cls}
+        googleEnabled={isGoogleEnabled()}
+        userEmail={session?.user?.email ?? ""}
+      />
 
       {/* 로그아웃 */}
       <div className="card">
