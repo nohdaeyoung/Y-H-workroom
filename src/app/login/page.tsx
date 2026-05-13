@@ -1,8 +1,20 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+import LoginForm from "./LoginForm";
 
 export const metadata = { title: "로그인 — 영희네 작업실" };
 
-export default function LoginPage() {
+type Props = {
+  searchParams?: { from?: string };
+};
+
+export default async function LoginPage({ searchParams }: Props) {
+  const session = await auth();
+  if (session?.user?.id) {
+    redirect(searchParams?.from || "/");
+  }
+
   return (
     <div className="container-prose pt-20 pb-24">
       <div className="max-w-sm mx-auto card-paper">
@@ -12,43 +24,13 @@ export default function LoginPage() {
             <span className="text-h">희</span>
             <span className="ml-1">네 작업실</span>
           </div>
-          <p className="mt-2 text-sm text-ink-soft">
-            Y &amp; H 둘만의 공간
-          </p>
+          <p className="mt-2 text-sm text-ink-soft">Y &amp; H 둘만의 공간</p>
         </div>
 
-        <form className="space-y-4 opacity-60 pointer-events-none">
-          <div>
-            <label className="block text-xs text-ink-soft mb-1.5 tracking-wide">아이디</label>
-            <input
-              type="text"
-              placeholder="Y 또는 H"
-              className="w-full px-3 py-2 rounded border border-line bg-paper focus:outline-none focus:border-ink/40 text-sm"
-              disabled
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-ink-soft mb-1.5 tracking-wide">비밀번호</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              className="w-full px-3 py-2 rounded border border-line bg-paper focus:outline-none focus:border-ink/40 text-sm"
-              disabled
-            />
-          </div>
-          <button
-            type="button"
-            className="btn w-full py-2.5 cursor-not-allowed"
-            disabled
-          >
-            로그인
-          </button>
-        </form>
+        <LoginForm from={searchParams?.from} />
 
-        <div className="mt-6 text-center text-xs text-ink-soft">
-          <p className="hand text-base text-ink-soft/70">
-            ＿ 인증 시스템 Phase 1 후반부 ＿
-          </p>
+        <div className="mt-6 text-center text-xs text-ink-soft hand text-base opacity-70">
+          ＿ 둘만 들어오는 작업실 ＿
         </div>
       </div>
 

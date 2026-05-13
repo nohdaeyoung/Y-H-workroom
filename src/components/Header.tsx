@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { auth } from "@/auth";
+import { logoutAction } from "@/app/login/actions";
 
 const navItems = [
   { href: "/essay", label: "에세이" },
@@ -9,7 +11,10 @@ const navItems = [
   { href: "/about", label: "소개" },
 ];
 
-export default function Header() {
+export default async function Header() {
+  const session = await auth();
+  const user = session?.user;
+
   return (
     <header className="border-b border-line bg-paper/80 backdrop-blur-sm sticky top-0 z-20">
       <div className="max-w-5xl mx-auto px-5 h-14 flex items-center justify-between">
@@ -31,12 +36,34 @@ export default function Header() {
           ))}
         </nav>
 
-        <Link
-          href="/login"
-          className="text-sm text-ink-soft hover:text-ink transition-colors"
-        >
-          로그인
-        </Link>
+        {user ? (
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin"
+              className={`text-sm font-medium ${
+                user.id === "Y" ? "text-y" : "text-h"
+              }`}
+              title="어드민으로"
+            >
+              {user.displayName || user.id}
+            </Link>
+            <form action={logoutAction}>
+              <button
+                type="submit"
+                className="text-xs text-ink-soft hover:text-ink transition-colors"
+              >
+                로그아웃
+              </button>
+            </form>
+          </div>
+        ) : (
+          <Link
+            href="/login"
+            className="text-sm text-ink-soft hover:text-ink transition-colors"
+          >
+            로그인
+          </Link>
+        )}
       </div>
     </header>
   );
