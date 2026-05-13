@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1045.0",
+    "@aws-sdk/s3-request-presigner": "^3.1045.0",
     "@tiptap/extension-image": "^3.23.2",
     "@tiptap/extension-link": "^3.23.2",
     "@tiptap/extension-placeholder": "^3.23.2",

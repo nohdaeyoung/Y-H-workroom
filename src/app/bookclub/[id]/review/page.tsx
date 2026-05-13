@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { getBookclub } from "@/lib/bookclubs";
 import BookclubReviewClient from "@/components/BookclubReviewClient";
+import BookclubAudioUploader from "@/components/BookclubAudioUploader";
 import {
   publishAction,
   unpublishAction,
@@ -60,19 +61,10 @@ export default async function BookclubReviewPage({ params }: Props) {
         </div>
       </div>
 
-      <div
-        className="card-flat"
-        style={{
-          padding: 14,
-          background: "var(--paper-ink)",
-          border: "1px dashed var(--line-2)",
-          marginBottom: 20,
-        }}
-      >
-        <span className="meta">
-          🎙 녹음 업로드 + Whisper 음성 인식은 다음 단계에서 붙입니다. 지금은 transcript를 직접 적거나 다듬을 수 있어요.
-        </span>
-      </div>
+      <BookclubAudioUploader
+        bookclubId={b.id}
+        initialAudioUrl={b.audioUrl}
+      />
 
       <BookclubReviewClient
         bookclubId={b.id}
