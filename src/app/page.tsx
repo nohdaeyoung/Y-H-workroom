@@ -193,7 +193,6 @@ export default async function HomePage() {
           }}
         >
           <span style={{ color: "var(--y-deep)" }}>영</span>
-          <span style={{ color: "var(--ink-3)", fontWeight: 300 }}> · </span>
           <span style={{ color: "var(--h-deep)" }}>희</span>
           <span>네 작업실</span>
         </h1>

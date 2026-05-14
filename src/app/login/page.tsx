@@ -27,7 +27,6 @@ export default async function LoginPage({ searchParams }: Props) {
         </div>
         <h1 className="serif" style={{ fontSize: 32, marginTop: 4 }}>
           <span style={{ color: "var(--y-deep)" }}>영</span>
-          <span style={{ color: "var(--ink-3)" }}> · </span>
           <span style={{ color: "var(--h-deep)" }}>희</span>
           <span>의 자리로</span>
         </h1>

@@ -4,6 +4,12 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { sanitizeRichHtml } from "@/lib/sanitize";
+import { notifyOnActionRequest, notifyOnNewItem } from "@/lib/notifications";
+import {
+  createActionRequest,
+  findPendingRequest,
+} from "@/lib/action-requests";
+import { getBookclub } from "@/lib/bookclubs";
 import {
   addBookclubQuote,
   createBookclubDraft,
@@ -66,6 +72,9 @@ export async function createDraftAction(
   redirect(`/bookclub/${id}/review`);
 }
 
+/**
+ * 독서모임 상태 전환 — 동의 요청 생성. 상대 승인 시 /admin/requests에서 실제 반영.
+ */
 export async function setStatusAction(formData: FormData) {
   "use server";
   const session = await auth();
@@ -78,10 +87,61 @@ export async function setStatusAction(formData: FormData) {
     statusRaw === "reading" || statusRaw === "met" || statusRaw === "finished"
       ? statusRaw
       : "reading";
-  await setBookclubStatus(id, status);
-  revalidatePath(`/bookclub/${id}`);
-  revalidatePath(`/bookclub/${id}/review`);
-  revalidatePath("/bookclub");
+
+  const existing = await findPendingRequest("set-bookclub-status", id);
+  if (existing) return;
+
+  const b = await getBookclub(id);
+  if (!b) return;
+  if (b.status === status) return;
+
+  await createActionRequest({
+    kind: "set-bookclub-status",
+    targetId: id,
+    targetLabel: b.bookTitle,
+    requester: uid,
+    payload: { status },
+  });
+  void notifyOnActionRequest({
+    kind: "set-bookclub-status",
+    requester: uid,
+    targetLabel: b.bookTitle,
+  });
+  revalidatePath("/admin/requests");
+}
+
+/**
+ * 독서모임 전체 삭제 — 동의 요청 생성.
+ */
+export async function deleteBookclubAction(
+  formData: FormData
+): Promise<BookclubActionState> {
+  "use server";
+  const session = await auth();
+  const uid = session?.user?.id;
+  if (uid !== "Y" && uid !== "H") return { error: "로그인이 필요해요" };
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { error: "잘못된 요청" };
+
+  const existing = await findPendingRequest("delete-bookclub", id);
+  if (existing) return { error: "이미 대기 중인 삭제 요청이 있어요" };
+
+  const b = await getBookclub(id);
+  if (!b) return { error: "찾을 수 없어요" };
+
+  await createActionRequest({
+    kind: "delete-bookclub",
+    targetId: id,
+    targetLabel: b.bookTitle,
+    requester: uid,
+  });
+  void notifyOnActionRequest({
+    kind: "delete-bookclub",
+    requester: uid,
+    targetLabel: b.bookTitle,
+  });
+  revalidatePath("/admin/requests");
+  return { error: "", ok: true };
 }
 
 export async function saveTranscriptAction(
@@ -202,6 +262,15 @@ export async function saveImpressionAction(
   if (!id) return { error: "잘못된 요청" };
   const res = await setBookclubImpression(id, author, { title, content });
   if (!res.ok) return { error: res.error ?? "저장 실패" };
+
+  void notifyOnNewItem({
+    kind: "bookclub",
+    actor: author,
+    id,
+    title: title || "독서 소감",
+    preview: content.replace(/<[^>]+>/g, "").slice(0, 200),
+  });
+
   revalidatePath(`/bookclub/${id}`);
   return { error: "", ok: true };
 }

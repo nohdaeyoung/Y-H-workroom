@@ -22,7 +22,7 @@ export default function EssayCard({ essay }: { essay: Essay }) {
       className={`block ${bgClass} border border-line rounded-md p-5 hover:border-ink/30 transition-colors`}
     >
       <div className={`text-xs tracking-[0.2em] ${labelClass} mb-2 font-medium`}>
-        {isY ? "Y · 대영" : "H · 희서"}
+        {isY ? "Y" : "H"}
       </div>
       <h3 className="font-serif text-lg font-medium mb-2 line-clamp-1">
         {essay.title}

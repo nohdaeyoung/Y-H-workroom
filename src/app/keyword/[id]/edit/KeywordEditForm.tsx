@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { RichEditor } from "@/components/RichEditor";
 import {
+  deleteKeywordAction,
   deleteKeywordEssayAction,
   updateKeywordEssayAction,
   updateKeywordWordAction,
@@ -27,6 +28,20 @@ export default function KeywordEditForm({
   const [content, setContent] = useState(mine?.content ?? "");
   const [essaySaving, setEssaySaving] = useState(false);
   const [essayMsg, setEssayMsg] = useState<string | null>(null);
+
+  const [delKeyword, setDelKeyword] = useState(false);
+  const [delKeywordMsg, setDelKeywordMsg] = useState<string | null>(null);
+
+  async function requestDeleteKeyword() {
+    if (!confirm("키워드 전체 삭제를 요청할까요? 두 사람 글 모두 사라져요. 상대 승인 필요.")) return;
+    setDelKeyword(true);
+    setDelKeywordMsg(null);
+    const fd = new FormData();
+    fd.append("keywordId", keyword.id);
+    const res = await deleteKeywordAction(fd);
+    setDelKeyword(false);
+    setDelKeywordMsg(res.error || "✓ 키워드 전체 삭제 요청을 보냈어요 — 상대 승인 대기");
+  }
 
   async function saveWord() {
     setWordSaving(true);
@@ -161,6 +176,44 @@ export default function KeywordEditForm({
           </span>
         </div>
       )}
+
+      <div
+        className="card-flat"
+        style={{
+          marginTop: 32,
+          padding: 16,
+          background: "var(--paper-ink)",
+          border: "1px dashed var(--line-2)",
+        }}
+      >
+        <div className="row-between" style={{ flexWrap: "wrap", gap: 8 }}>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 500 }}>키워드 전체 삭제</div>
+            <div className="meta">두 사람 글 모두 사라져요. 상대 동의 필요.</div>
+          </div>
+          <button
+            type="button"
+            className="btn"
+            onClick={requestDeleteKeyword}
+            disabled={delKeyword}
+            style={{ color: "var(--danger)" }}
+          >
+            {delKeyword ? "요청 보내는 중…" : "🗑 키워드 삭제 요청"}
+          </button>
+        </div>
+        {delKeywordMsg && (
+          <div
+            className="meta"
+            style={{
+              marginTop: 10,
+              color: delKeywordMsg.startsWith("✓") ? "var(--success)" : "var(--danger)",
+              fontSize: 12,
+            }}
+          >
+            {delKeywordMsg}
+          </div>
+        )}
+      </div>
     </>
   );
 }

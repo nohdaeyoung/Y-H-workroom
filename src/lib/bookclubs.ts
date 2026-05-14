@@ -277,3 +277,9 @@ export async function publishBookclub(id: string): Promise<void> {
 export async function unpublishBookclub(id: string): Promise<void> {
   await setBookclubStatus(id, "reading");
 }
+
+/** 독서모임 전체 삭제. ActionRequest 승인 후에만 호출. */
+export async function deleteBookclub(id: string): Promise<void> {
+  const db = getDbOrThrow();
+  await db.collection(COLLECTION).doc(id).delete();
+}

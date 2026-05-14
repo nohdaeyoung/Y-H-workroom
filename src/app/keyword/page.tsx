@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { auth } from "@/auth";
 import { listKeywords } from "@/lib/keywords";
-import { suggestKeywordAction } from "./actions";
+import NewKeywordButton from "@/components/NewKeywordButton";
 import type { Keyword } from "@/types/domain";
 
 export const metadata = { title: "키워드 — 영희네 작업실" };
@@ -49,7 +49,7 @@ function CurrentKeywordCard({ k }: { k: Keyword }) {
         {(["Y", "H"] as const).map((u) => {
           const essay = u === "Y" ? k.yEssay : k.hEssay;
           const cls = u === "Y" ? "y" : "h";
-          const name = u === "Y" ? "대영" : "희서";
+          const name = u === "Y" ? "Y" : "H";
           return (
             <div
               key={u}
@@ -156,11 +156,13 @@ export default async function KeywordListPage() {
             아직 키워드가 없어요.
           </div>
           {isYH && (
-            <form action={suggestKeywordAction} style={{ marginTop: 24 }}>
-              <button type="submit" className="btn btn-primary">
-                🎲 첫 키워드 받기
-              </button>
-            </form>
+            <div style={{ marginTop: 24 }}>
+              <NewKeywordButton
+                canRequest={true}
+                variant="primary"
+                label="🎲 첫 키워드 받기"
+              />
+            </div>
           )}
         </div>
       </div>
@@ -180,11 +182,11 @@ export default async function KeywordListPage() {
           AI가 던진 단어로, 각자의 글을 씁니다.
         </div>
         {isYH && (
-          <form action={suggestKeywordAction} style={{ marginTop: 14 }}>
-            <button type="submit" className="btn btn-ghost btn-sm">
-              🎲 새 키워드 받기
-            </button>
-          </form>
+          <div style={{ marginTop: 14 }}>
+            <NewKeywordButton
+              canRequest={!!(current.yEssay && current.hEssay)}
+            />
+          </div>
         )}
       </div>
 

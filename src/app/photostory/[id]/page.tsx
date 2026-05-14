@@ -31,8 +31,8 @@ export default async function PhotostoryDetailPage({ params }: Props) {
 
   const photoAuthorCls = p.photoAuthor.toLowerCase();
   const textAuthorCls = p.textAuthor.toLowerCase();
-  const photoName = p.photoAuthor === "Y" ? "대영" : "희서";
-  const textName = p.textAuthor === "Y" ? "대영" : "희서";
+  const photoName = p.photoAuthor === "Y" ? "Y" : "H";
+  const textName = p.textAuthor === "Y" ? "Y" : "H";
   const photoDeep =
     p.photoAuthor === "Y" ? "var(--y-deep)" : "var(--h-deep)";
   const textDeep = p.textAuthor === "Y" ? "var(--y-deep)" : "var(--h-deep)";

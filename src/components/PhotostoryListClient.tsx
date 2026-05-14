@@ -13,128 +13,232 @@ const FILTERS: { id: Filter; label: string }[] = [
   { id: "y2h", label: "📸Y → ✍️H" },
 ];
 
-const HEIGHTS = [240, 280, 220, 300, 260];
-
 function formatShort(ts: number) {
   const d = new Date(ts);
-  return `${d.getMonth() + 1}/${d.getDate()}`;
+  return `${d.getMonth() + 1}.${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function PhotoCard({ story, idx }: { story: Photostory; idx: number }) {
-  const waiting = story.status === "waiting";
-  const h = HEIGHTS[idx % HEIGHTS.length];
-  const name = story.textAuthor === "Y" ? "대영" : "희서";
-  const firstPhoto = story.photos[0];
+function stripHtml(html: string): string {
+  // 줄바꿈 의미 있는 태그는 \n으로 변환 후 나머지 태그 제거.
+  return html
+    .replace(/<\/(p|div|h[1-6]|li|br\s*\/?)>/gi, "\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function PhotoSlider({ photos, title }: { photos: string[]; title: string }) {
+  const [active, setActive] = useState(0);
+  if (photos.length === 0) return null;
+  const single = photos.length === 1;
+
+  function onScroll(e: React.UIEvent<HTMLDivElement>) {
+    const el = e.currentTarget;
+    const idx = Math.round(el.scrollLeft / el.clientWidth);
+    if (idx !== active) setActive(idx);
+  }
 
   return (
-    <Link
-      href={`/photostory/${story.id}`}
-      className="lift"
-      style={{
-        display: "block",
-        borderRadius: "var(--r-lg)",
-        overflow: "hidden",
-        background: "var(--paper-2)",
-        border: "1px solid var(--line)",
-      }}
-    >
-      <div style={{ position: "relative", height: h, overflow: "hidden" }}>
-        {firstPhoto ? (
-          <img
-            src={firstPhoto}
-            alt={story.photoTitle}
-            loading="lazy"
-            decoding="async"
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          />
-        ) : (
-          <PhotoPlaceholder hue={(idx * 47) % 360} height={h} idx={idx} />
-        )}
-        {story.photos.length > 1 && (
+    <div style={{ position: "relative", background: "var(--paper-ink)" }}>
+      <div
+        onScroll={single ? undefined : onScroll}
+        style={{
+          display: "flex",
+          overflowX: single ? "hidden" : "auto",
+          scrollSnapType: "x mandatory",
+          scrollbarWidth: "none",
+          WebkitOverflowScrolling: "touch",
+        }}
+      >
+        {photos.map((src, i) => (
+          <div
+            key={`${src}-${i}`}
+            style={{
+              flex: "0 0 100%",
+              scrollSnapAlign: "start",
+              width: "100%",
+              aspectRatio: "1 / 1",
+              overflow: "hidden",
+              background: "var(--paper-2)",
+            }}
+          >
+            <img
+              src={src}
+              alt={`${title} - ${i + 1}`}
+              loading="lazy"
+              decoding="async"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                display: "block",
+              }}
+            />
+          </div>
+        ))}
+      </div>
+      {!single && (
+        <>
           <div
             style={{
               position: "absolute",
-              top: 10,
-              right: 10,
-              padding: "3px 8px",
+              top: 12,
+              right: 12,
+              padding: "3px 10px",
               background: "oklch(0.2 0.02 50 / 0.65)",
               color: "white",
-              fontSize: 11,
+              fontSize: 12,
               borderRadius: "var(--r-pill)",
+              fontVariantNumeric: "tabular-nums",
             }}
           >
-            📷 {story.photos.length}
+            {active + 1} / {photos.length}
           </div>
-        )}
-        {waiting && (
           <div
+            className="row gap-4"
             style={{
               position: "absolute",
               bottom: 10,
-              left: 10,
-              padding: "4px 10px",
-              background: "oklch(0.97 0.03 80 / 0.95)",
-              color: "var(--ink-2)",
-              fontSize: 11,
-              borderRadius: "var(--r-pill)",
-              fontWeight: 500,
+              left: 0,
+              right: 0,
+              justifyContent: "center",
             }}
           >
-            ⏳ {name}의 글 대기중
+            {photos.map((_, i) => (
+              <span
+                key={i}
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background:
+                    i === active
+                      ? "white"
+                      : "oklch(1 0 0 / 0.5)",
+                  boxShadow: "0 0 2px oklch(0.2 0.02 50 / 0.3)",
+                }}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function FeedCard({ story }: { story: Photostory }) {
+  const waiting = story.status === "waiting";
+  const plain = story.text ? stripHtml(story.text) : "";
+
+  return (
+    <article
+      style={{
+        background: "var(--paper-2)",
+        border: "1px solid var(--line)",
+        borderRadius: "var(--r-lg)",
+        overflow: "hidden",
+        marginBottom: 28,
+      }}
+    >
+      {/* 헤더 */}
+      <div
+        className="row gap-8"
+        style={{
+          padding: "14px 18px",
+          borderBottom: "1px solid var(--line)",
+          alignItems: "center",
+          flexWrap: "wrap",
+        }}
+      >
+        <span
+          className={`avatar-mini ${story.photoAuthor === "Y" ? "y" : "h"}`}
+          style={{ width: 28, height: 28, fontSize: 12 }}
+        >
+          {story.photoAuthor}
+        </span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="row gap-4" style={{ fontSize: 13 }}>
+            <span
+              style={{
+                color: story.photoAuthor === "Y" ? "var(--y-deep)" : "var(--h-deep)",
+                fontWeight: 600,
+              }}
+            >
+              📸 {story.photoAuthor}
+            </span>
+            <span style={{ color: "var(--ink-4)" }}>→</span>
+            <span
+              style={{
+                color: story.textAuthor === "Y" ? "var(--y-deep)" : "var(--h-deep)",
+                fontWeight: 600,
+                opacity: waiting ? 0.4 : 1,
+              }}
+            >
+              ✍️ {story.textAuthor}
+            </span>
+          </div>
+          <div className="meta" style={{ fontSize: 11, marginTop: 2 }}>
+            {formatShort(story.photoUploadedAt)}
+            {waiting && <span style={{ marginLeft: 8 }}>· ⏳ 글 대기중</span>}
+          </div>
+        </div>
+        <Link
+          href={`/photostory/${story.id}`}
+          className="btn btn-ghost btn-sm"
+          style={{ fontSize: 12 }}
+        >
+          상세 →
+        </Link>
+      </div>
+
+      {/* 사진 */}
+      {story.photos.length > 0 ? (
+        <PhotoSlider photos={story.photos} title={story.photoTitle} />
+      ) : (
+        <PhotoPlaceholder hue={0} height={400} idx={0} />
+      )}
+
+      {/* 본문 */}
+      <div style={{ padding: "16px 20px 20px" }}>
+        <h3
+          className="serif"
+          style={{ fontSize: 20, fontWeight: 600, lineHeight: 1.4 }}
+        >
+          {story.photoTitle}
+        </h3>
+        {plain ? (
+          <div
+            className="serif"
+            style={{
+              marginTop: 10,
+              fontSize: 15,
+              color: "var(--ink)",
+              lineHeight: 1.8,
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+            }}
+          >
+            {plain}
+          </div>
+        ) : (
+          <div
+            className="hand"
+            style={{
+              marginTop: 10,
+              fontSize: 16,
+              color: "var(--ink-3)",
+            }}
+          >
+            {story.textAuthor}의 글을 기다리고 있어요
           </div>
         )}
       </div>
-      <div style={{ padding: "14px 16px 16px" }}>
-        <div
-          className="row gap-4"
-          style={{ fontSize: 11, color: "var(--ink-3)", letterSpacing: "0.04em" }}
-        >
-          <span
-            style={{
-              color:
-                story.photoAuthor === "Y" ? "var(--y-deep)" : "var(--h-deep)",
-              fontWeight: 600,
-            }}
-          >
-            📸 {story.photoAuthor}
-          </span>
-          <span>→</span>
-          <span
-            style={{
-              color:
-                story.textAuthor === "Y" ? "var(--y-deep)" : "var(--h-deep)",
-              fontWeight: 600,
-              opacity: waiting ? 0.4 : 1,
-            }}
-          >
-            ✍️ {story.textAuthor}
-          </span>
-          <span style={{ marginLeft: "auto" }}>
-            {formatShort(story.photoUploadedAt)}
-          </span>
-        </div>
-        <h3 className="serif" style={{ fontSize: 17, marginTop: 8, lineHeight: 1.4 }}>
-          {story.photoTitle}
-        </h3>
-        {story.text && (
-          <p
-            className="serif"
-            style={{
-              fontSize: 14,
-              color: "var(--ink-2)",
-              marginTop: 8,
-              lineHeight: 1.7,
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}
-          >
-            {story.text.replace(/<[^>]+>/g, "").slice(0, 120)}
-          </p>
-        )}
-      </div>
-    </Link>
+    </article>
   );
 }
 
@@ -155,8 +259,8 @@ export default function PhotostoryListClient({
   });
 
   return (
-    <div className="container fade-in" style={{ maxWidth: 1080 }}>
-      <div style={{ textAlign: "center", marginBottom: 32 }}>
+    <div className="container fade-in" style={{ maxWidth: 560 }}>
+      <div style={{ textAlign: "center", marginBottom: 28 }}>
         <div className="hand" style={{ fontSize: 22, color: "var(--ink-3)" }}>
           photo + words
         </div>
@@ -173,7 +277,7 @@ export default function PhotostoryListClient({
 
       <div
         className="row-between"
-        style={{ marginBottom: 24, flexWrap: "wrap", gap: 12 }}
+        style={{ marginBottom: 20, flexWrap: "wrap", gap: 12 }}
       >
         <div
           className="row gap-4"
@@ -213,15 +317,9 @@ export default function PhotostoryListClient({
           <span className="hand" style={{ fontSize: 20 }}>아직 비어 있어요</span>
         </div>
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-            gap: 20,
-          }}
-        >
-          {filtered.map((p, idx) => (
-            <PhotoCard key={p.id} story={p} idx={idx} />
+        <div>
+          {filtered.map((p) => (
+            <FeedCard key={p.id} story={p} />
           ))}
         </div>
       )}

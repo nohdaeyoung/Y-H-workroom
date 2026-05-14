@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/auth";
 import { createEssay, listEssays } from "@/lib/essays";
+import { notifyOnNewItem } from "@/lib/notifications";
 import type { EssayStatus, UserId } from "@/types/domain";
 
 export async function GET(req: NextRequest) {
@@ -43,6 +44,15 @@ export async function POST(req: NextRequest) {
       tags: Array.isArray(body.tags) ? body.tags : [],
       status: (body.status as EssayStatus) ?? "published",
     });
+    if (essay.status === "published") {
+      void notifyOnNewItem({
+        kind: "essay",
+        actor: authorId,
+        id: essay.id,
+        title: essay.title,
+        preview: essay.excerpt ?? essay.content.replace(/<[^>]+>/g, "").slice(0, 200),
+      });
+    }
     return NextResponse.json({ essay }, { status: 201 });
   } catch (err) {
     console.error("POST /api/essays failed:", err);

@@ -235,6 +235,54 @@ export async function updateSentenceText(
   return { ok: true };
 }
 
+/**
+ * 본인 문장 삭제. 삭제 후 order 재정렬 + sentenceCount / first / lastSentenceText 동기화.
+ */
+export async function deleteSentence(
+  relayId: string,
+  sentenceId: string,
+  author: UserId
+): Promise<{ ok: boolean; error?: string }> {
+  const db = getDbOrThrow();
+  const ref = db.collection(COLLECTION).doc(relayId);
+  const sentRef = ref.collection("sentences").doc(sentenceId);
+  const sentDoc = await sentRef.get();
+  if (!sentDoc.exists) return { ok: false, error: "문장을 찾을 수 없어요" };
+  const sentData = sentDoc.data() as { author: UserId };
+  if (sentData.author !== author)
+    return { ok: false, error: "본인 문장만 삭제할 수 있어요" };
+
+  await sentRef.delete();
+
+  // 남은 문장으로 order 재정렬 + relay 메타 동기화
+  const remaining = await ref
+    .collection("sentences")
+    .orderBy("order", "asc")
+    .get();
+  const batch = db.batch();
+  remaining.docs.forEach((d, i) => batch.update(d.ref, { order: i }));
+  if (remaining.empty) {
+    batch.update(ref, {
+      sentenceCount: 0,
+      firstSentenceText: "",
+      lastSentenceText: "",
+      updatedAt: Date.now(),
+    });
+  } else {
+    const first = remaining.docs[0].data() as RelaySentence;
+    const last = remaining.docs[remaining.docs.length - 1].data() as RelaySentence;
+    batch.update(ref, {
+      sentenceCount: remaining.size,
+      firstSentenceText: first.text,
+      lastSentenceText: last.text,
+      lastAuthor: last.author,
+      updatedAt: Date.now(),
+    });
+  }
+  await batch.commit();
+  return { ok: true };
+}
+
 export async function deleteRelay(relayId: string): Promise<void> {
   const db = getDbOrThrow();
   const ref = db.collection(COLLECTION).doc(relayId);
@@ -243,6 +291,18 @@ export async function deleteRelay(relayId: string): Promise<void> {
   sents.docs.forEach((d) => batch.delete(d.ref));
   batch.delete(ref);
   await batch.commit();
+}
+
+/** ongoing↔completed 직접 전환. ActionRequest 승인 후에만 호출. */
+export async function setRelayStatus(
+  relayId: string,
+  status: "ongoing" | "completed"
+): Promise<void> {
+  const db = getDbOrThrow();
+  await db
+    .collection(COLLECTION)
+    .doc(relayId)
+    .update({ status, updatedAt: Date.now() });
 }
 
 export async function toggleAgree(

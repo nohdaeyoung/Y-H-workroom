@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { RichEditor } from "@/components/RichEditor";
 import {
   deletePhotostoryAction,
+  setPhotostoryStatusAction,
   updatePhotostoryAction,
 } from "@/app/photostory/actions";
 import type { Photostory } from "@/types/domain";
@@ -32,6 +33,35 @@ export default function PhotostoryEditForm({
   const [textMsg, setTextMsg] = useState<string | null>(null);
   const [textSaving, setTextSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  const [delSaving, setDelSaving] = useState(false);
+  const [delMsg, setDelMsg] = useState<string | null>(null);
+  const [statusSaving, setStatusSaving] = useState(false);
+  const [statusMsg, setStatusMsg] = useState<string | null>(null);
+
+  async function requestDelete() {
+    if (!confirm("사진+글 삭제를 요청할까요? 상대 승인 후 실제로 삭제됩니다.")) return;
+    setDelSaving(true);
+    setDelMsg(null);
+    const fd = new FormData();
+    fd.append("id", photostory.id);
+    const res = await deletePhotostoryAction(fd);
+    setDelSaving(false);
+    setDelMsg(res.error || "✓ 삭제 요청을 보냈어요 — 상대 승인 대기");
+  }
+
+  async function requestStatusToggle() {
+    const next = photostory.status === "waiting" ? "completed" : "waiting";
+    if (!confirm(`상태를 "${next}"로 전환 요청할까요? 상대 승인 필요.`)) return;
+    setStatusSaving(true);
+    setStatusMsg(null);
+    const fd = new FormData();
+    fd.append("id", photostory.id);
+    fd.append("status", next);
+    const res = await setPhotostoryStatusAction(fd);
+    setStatusSaving(false);
+    setStatusMsg(res.error || `✓ 상태 전환 요청 보냈어요 (→ ${next})`);
+  }
 
   async function addPhoto(file: File) {
     setUploading(true);
@@ -259,6 +289,48 @@ export default function PhotostoryEditForm({
         )}
       </div>
 
+      {/* 상태 전환 */}
+      <div
+        className="card-flat"
+        style={{
+          padding: 16,
+          background: "var(--paper-2)",
+          border: "1px solid var(--line)",
+          marginBottom: 12,
+        }}
+      >
+        <div className="row-between" style={{ flexWrap: "wrap", gap: 8 }}>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 500 }}>
+              상태: {photostory.status === "waiting" ? "⏳ 대기" : "✓ 완료"}
+            </div>
+            <div className="meta">
+              {photostory.status === "waiting" ? "completed로 수동 전환" : "waiting으로 되돌리기"} · 상대 동의 필요.
+            </div>
+          </div>
+          <button
+            type="button"
+            className="btn btn-sm"
+            onClick={requestStatusToggle}
+            disabled={statusSaving}
+          >
+            {statusSaving ? "요청 중…" : "🔁 상태 전환 요청"}
+          </button>
+        </div>
+        {statusMsg && (
+          <div
+            className="meta"
+            style={{
+              marginTop: 10,
+              color: statusMsg.startsWith("✓") ? "var(--success)" : "var(--danger)",
+              fontSize: 12,
+            }}
+          >
+            {statusMsg}
+          </div>
+        )}
+      </div>
+
       {/* 삭제 */}
       <div
         className="card-flat"
@@ -271,24 +343,30 @@ export default function PhotostoryEditForm({
         <div className="row-between" style={{ flexWrap: "wrap", gap: 8 }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 500 }}>삭제</div>
-            <div className="meta">사진+글이 함께 사라집니다.</div>
+            <div className="meta">상대 동의 후 사진+글이 함께 사라져요.</div>
           </div>
-          <form
-            action={deletePhotostoryAction}
-            onSubmit={(e) => {
-              if (!confirm("정말 삭제할까요?")) e.preventDefault();
+          <button
+            type="button"
+            className="btn"
+            onClick={requestDelete}
+            disabled={delSaving}
+            style={{ color: "var(--danger)" }}
+          >
+            {delSaving ? "요청 보내는 중…" : "🗑 삭제 요청"}
+          </button>
+        </div>
+        {delMsg && (
+          <div
+            className="meta"
+            style={{
+              marginTop: 10,
+              color: delMsg.startsWith("✓") ? "var(--success)" : "var(--danger)",
+              fontSize: 12,
             }}
           >
-            <input type="hidden" name="id" value={photostory.id} />
-            <button
-              type="submit"
-              className="btn"
-              style={{ color: "var(--danger)" }}
-            >
-              🗑 삭제
-            </button>
-          </form>
-        </div>
+            {delMsg}
+          </div>
+        )}
       </div>
     </>
   );

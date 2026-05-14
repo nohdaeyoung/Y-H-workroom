@@ -20,7 +20,7 @@ function Pane({
   blind: boolean;
 }) {
   const cls = user === "Y" ? "y" : "h";
-  const name = user === "Y" ? "대영" : "희서";
+  const name = user === "Y" ? "Y" : "H";
   const deepVar = user === "Y" ? "var(--y-deep)" : "var(--h-deep)";
 
   return (
@@ -149,17 +149,13 @@ export default function KeywordSplit({
           className={`btn btn-sm ${mobileTab === "y" ? "btn-y" : ""}`}
           onClick={() => setMobileTab("y")}
           style={{ flex: 1 }}
-        >
-          Y · 대영
-        </button>
+        >Y</button>
         <button
           type="button"
           className={`btn btn-sm ${mobileTab === "h" ? "btn-h" : ""}`}
           onClick={() => setMobileTab("h")}
           style={{ flex: 1 }}
-        >
-          H · 희서
-        </button>
+        >H</button>
       </div>
 
       <div className="split keyword-split">

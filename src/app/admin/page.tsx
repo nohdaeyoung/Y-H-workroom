@@ -71,6 +71,12 @@ export default async function AdminHomePage() {
 
   const quickLinks = [
     {
+      href: "/admin/requests",
+      icon: "🔔",
+      label: "동의 요청",
+      desc: "삭제 / 상태 전환 승인 대기",
+    },
+    {
       href: "/admin/my",
       icon: "📚",
       label: "내 글 모아보기",
@@ -88,6 +94,16 @@ export default async function AdminHomePage() {
       label: "계정 설정",
       desc: "비밀번호 · 구글 연동",
     },
+    ...(id === "Y"
+      ? [
+          {
+            href: "/admin/site",
+            icon: "🛠️",
+            label: "사이트 설정",
+            desc: "메타태그 · GA · 스크립트 (Y 전용)",
+          },
+        ]
+      : []),
   ];
 
   const sectionCards = [

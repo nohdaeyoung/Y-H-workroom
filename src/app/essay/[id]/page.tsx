@@ -22,7 +22,7 @@ export default async function EssayDetailPage({ params }: Props) {
   if (!essay) notFound();
 
   const cls = essay.author === "Y" ? "y" : "h";
-  const name = essay.author === "Y" ? "대영" : "희서";
+  const name = essay.author === "Y" ? "Y" : "H";
   const deepVar = cls === "y" ? "var(--y-deep)" : "var(--h-deep)";
   const isYH = !!session?.user?.id;
 

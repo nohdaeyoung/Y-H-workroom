@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { getRelayWithSentences } from "@/lib/relays";
 import RelayInputForm from "./RelayInputForm";
 import RelayAgreeForm from "./RelayAgreeForm";
+import MySentenceActions from "./MySentenceActions";
 
 type Props = { params: { id: string } };
 
@@ -81,12 +82,18 @@ export default async function RelayDetailPage({ params }: Props) {
             background: "var(--line)",
           }}
         />
-        {relay.sentences.map((s) => {
+        {relay.sentences.map((s, idx) => {
           const showAuthor = isYH;
           const cls = s.author === "Y" ? "y" : "h";
           const bg =
             s.author === "Y" ? "oklch(0.965 0.03 82)" : "oklch(0.96 0.018 250)";
           const bd = s.author === "Y" ? "var(--y-line)" : "var(--h-line)";
+          const isLast = idx === relay.sentences.length - 1;
+          const isMineLast =
+            isYH &&
+            s.author === uid &&
+            isLast &&
+            relay.status === "ongoing";
           return (
             <div key={s.id} style={{ position: "relative", marginBottom: 20 }}>
               <div
@@ -121,6 +128,13 @@ export default async function RelayDetailPage({ params }: Props) {
                   <span>·</span>
                   <span>{formatDate(s.createdAt)}</span>
                 </div>
+                {isMineLast && (
+                  <MySentenceActions
+                    relayId={relay.id}
+                    sentenceId={s.id}
+                    initialText={s.text}
+                  />
+                )}
               </div>
             </div>
           );

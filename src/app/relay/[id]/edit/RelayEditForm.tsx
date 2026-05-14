@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   deleteRelayAction,
+  deleteSentenceAction,
   updateRelayTitleAction,
   updateSentenceAction,
 } from "@/app/relay/actions";
@@ -21,6 +22,19 @@ export default function RelayEditForm({
   const [title, setTitle] = useState(relay.title);
   const [titleSaving, setTitleSaving] = useState(false);
   const [titleMsg, setTitleMsg] = useState<string | null>(null);
+  const [delSaving, setDelSaving] = useState(false);
+  const [delMsg, setDelMsg] = useState<string | null>(null);
+
+  async function requestDelete() {
+    if (!confirm("이어쓰기 전체 삭제를 요청할까요? 상대가 승인해야 실제로 삭제돼요.")) return;
+    setDelSaving(true);
+    setDelMsg(null);
+    const fd = new FormData();
+    fd.append("relayId", relay.id);
+    const res = await deleteRelayAction(fd);
+    setDelSaving(false);
+    setDelMsg(res.error || "✓ 삭제 요청을 보냈어요 — 상대 승인 대기");
+  }
 
   async function saveTitle() {
     setTitleSaving(true);
@@ -98,24 +112,30 @@ export default function RelayEditForm({
         <div className="row-between" style={{ flexWrap: "wrap", gap: 8 }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 500 }}>이어쓰기 삭제</div>
-            <div className="meta">문장 전부와 함께 사라져요. 되돌릴 수 없음.</div>
+            <div className="meta">상대 동의 후 사라져요. 되돌릴 수 없음.</div>
           </div>
-          <form
-            action={deleteRelayAction}
-            onSubmit={(e) => {
-              if (!confirm("정말 삭제할까요?")) e.preventDefault();
+          <button
+            type="button"
+            className="btn"
+            style={{ color: "var(--danger)" }}
+            onClick={requestDelete}
+            disabled={delSaving}
+          >
+            {delSaving ? "요청 보내는 중…" : "🗑 삭제 요청"}
+          </button>
+        </div>
+        {delMsg && (
+          <div
+            className="meta"
+            style={{
+              marginTop: 10,
+              color: delMsg.startsWith("✓") ? "var(--success)" : "var(--danger)",
+              fontSize: 12,
             }}
           >
-            <input type="hidden" name="relayId" value={relay.id} />
-            <button
-              type="submit"
-              className="btn"
-              style={{ color: "var(--danger)" }}
-            >
-              🗑 삭제
-            </button>
-          </form>
-        </div>
+            {delMsg}
+          </div>
+        )}
       </div>
 
       <div className="row" style={{ marginTop: 20 }}>
@@ -146,6 +166,7 @@ function SentenceEditor({
   const [text, setText] = useState(initialText);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const cls = author === "Y" ? "y" : "h";
 
   async function save() {
@@ -158,6 +179,22 @@ function SentenceEditor({
     const res = await updateSentenceAction({ error: "" }, fd);
     setMsg(res.error || "✓ 저장됨");
     setSaving(false);
+    router.refresh();
+  }
+
+  async function deleteMine() {
+    if (!confirm("이 문장만 삭제할까요? (본인 문장은 단독으로 삭제 가능)")) return;
+    setDeleting(true);
+    setMsg(null);
+    const fd = new FormData();
+    fd.append("relayId", relayId);
+    fd.append("sentenceId", sentenceId);
+    const res = await deleteSentenceAction({ error: "" }, fd);
+    if (res.error) {
+      setMsg(res.error);
+      setDeleting(false);
+      return;
+    }
     router.refresh();
   }
 
@@ -188,7 +225,7 @@ function SentenceEditor({
         maxLength={200}
       />
       {editable && (
-        <div className="row-between" style={{ marginTop: 10 }}>
+        <div className="row-between" style={{ marginTop: 10, gap: 8 }}>
           {msg && (
             <span
               className="meta"
@@ -201,15 +238,25 @@ function SentenceEditor({
               {msg}
             </span>
           )}
-          <button
-            type="button"
-            className="btn btn-sm"
-            onClick={save}
-            disabled={saving || !text.trim() || text === initialText}
-            style={{ marginLeft: "auto" }}
-          >
-            {saving ? "저장 중…" : "이 문장 저장"}
-          </button>
+          <div className="row gap-8" style={{ marginLeft: "auto" }}>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={deleteMine}
+              disabled={saving || deleting}
+              style={{ color: "var(--danger)" }}
+            >
+              {deleting ? "삭제 중…" : "🗑 문장 삭제"}
+            </button>
+            <button
+              type="button"
+              className="btn btn-sm"
+              onClick={save}
+              disabled={saving || deleting || !text.trim() || text === initialText}
+            >
+              {saving ? "저장 중…" : "이 문장 저장"}
+            </button>
+          </div>
         </div>
       )}
     </div>

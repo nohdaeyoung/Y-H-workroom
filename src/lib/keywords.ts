@@ -218,6 +218,12 @@ export async function deleteKeywordEssay(
   await ref.update({ yEssay, hEssay, status });
 }
 
+/** 키워드 전체 삭제(두 사람 글 모두 사라짐). ActionRequest 승인 후에만 호출. */
+export async function deleteKeyword(id: string): Promise<void> {
+  const db = getDbOrThrow();
+  await db.collection(COLLECTION).doc(id).delete();
+}
+
 export async function writeKeywordEssay(
   input: WriteKeywordEssayInput
 ): Promise<WriteResult> {

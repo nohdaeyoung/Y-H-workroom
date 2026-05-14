@@ -34,6 +34,8 @@ export async function saveAboutAction(
         title: String(s.title).slice(0, 200),
         body: sanitizeRichHtml(String(s.body)),
         imageUrl: typeof s.imageUrl === "string" ? s.imageUrl : undefined,
+        subtitle:
+          typeof s.subtitle === "string" ? s.subtitle.slice(0, 100) : undefined,
       }));
   } catch {
     return { error: "섹션 데이터 형식이 잘못됐어요" };

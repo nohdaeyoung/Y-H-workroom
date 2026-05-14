@@ -83,13 +83,13 @@ export default async function AboutPage() {
             </span>
             <div>
               <div className="serif" style={{ fontSize: 18, fontWeight: 600 }}>
-                {yProfile?.title ?? "Y · 대영"}
+                Y
               </div>
               <div
                 className="hand"
                 style={{ fontSize: 17, color: "var(--y-deep)" }}
               >
-                기록하는 사람
+                {yProfile?.subtitle?.trim() || "기록하는 사람"}
               </div>
             </div>
           </div>
@@ -132,13 +132,13 @@ export default async function AboutPage() {
             </span>
             <div>
               <div className="serif" style={{ fontSize: 18, fontWeight: 600 }}>
-                {hProfile?.title ?? "H · 희서"}
+                H
               </div>
               <div
                 className="hand"
                 style={{ fontSize: 17, color: "var(--h-deep)" }}
               >
-                사진 찍는 사람
+                {hProfile?.subtitle?.trim() || "사진 찍는 사람"}
               </div>
             </div>
           </div>

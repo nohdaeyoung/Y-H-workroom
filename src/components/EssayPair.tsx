@@ -46,7 +46,7 @@ function EssayPane({
       </div>
     );
   }
-  const name = color === "y" ? "대영" : "희서";
+  const name = color === "y" ? "Y" : "H";
   const deepVar = color === "y" ? "var(--y-deep)" : "var(--h-deep)";
 
   return (

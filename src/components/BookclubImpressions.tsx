@@ -35,7 +35,7 @@ function Pane({
   viewer: "Y" | "H" | null;
 }) {
   const cls = author === "Y" ? "y" : "h";
-  const name = author === "Y" ? "대영" : "희서";
+  const name = author === "Y" ? "Y" : "H";
   const deep = author === "Y" ? "var(--y-deep)" : "var(--h-deep)";
 
   const isMe = viewer === author;
@@ -159,19 +159,20 @@ function ImpressionForm({
       )}
       <div className="row-between" style={{ marginTop: 14, flexWrap: "wrap", gap: 8 }}>
         {impression && (
-          <form action={deleteImpressionAction} style={{ display: "inline" }}>
-            <input type="hidden" name="id" value={bookclubId} />
-            <button
-              type="submit"
-              className="btn btn-ghost btn-sm"
-              style={{ color: "var(--danger)" }}
-              onClick={(e) => {
-                if (!confirm("내 소감을 삭제할까요?")) e.preventDefault();
-              }}
-            >
-              🗑 삭제
-            </button>
-          </form>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            style={{ color: "var(--danger)" }}
+            onClick={async () => {
+              if (!confirm("내 소감을 삭제할까요?")) return;
+              const fd = new FormData();
+              fd.append("id", bookclubId);
+              await deleteImpressionAction(fd);
+              onDone();
+            }}
+          >
+            🗑 삭제
+          </button>
         )}
         <div className="row gap-8" style={{ marginLeft: "auto" }}>
           <button type="button" className="btn btn-ghost btn-sm" onClick={onDone}>
@@ -214,17 +215,13 @@ export default function BookclubImpressions({
           className={`btn btn-sm ${mobileTab === "y" ? "btn-y" : ""}`}
           onClick={() => setMobileTab("y")}
           style={{ flex: 1 }}
-        >
-          Y · 대영
-        </button>
+        >Y</button>
         <button
           type="button"
           className={`btn btn-sm ${mobileTab === "h" ? "btn-h" : ""}`}
           onClick={() => setMobileTab("h")}
           style={{ flex: 1 }}
-        >
-          H · 희서
-        </button>
+        >H</button>
       </div>
       <div className="split essay-split">
         <div className="essay-pane-y">

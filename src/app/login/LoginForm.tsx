@@ -25,14 +25,14 @@ export default function LoginForm({ from }: { from?: string }) {
           className={`btn flex-1 ${who === "Y" ? "btn-y" : ""}`}
           onClick={() => setWho("Y")}
         >
-          <span style={{ fontSize: 16 }}>🌾</span> &nbsp;Y · 대영
+          <span style={{ fontSize: 16 }}>🌾</span> &nbsp;Y
         </button>
         <button
           type="button"
           className={`btn flex-1 ${who === "H" ? "btn-h" : ""}`}
           onClick={() => setWho("H")}
         >
-          <span style={{ fontSize: 16 }}>🌙</span> &nbsp;H · 희서
+          <span style={{ fontSize: 16 }}>🌙</span> &nbsp;H
         </button>
       </div>
 

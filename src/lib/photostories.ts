@@ -188,3 +188,12 @@ export async function deletePhotostory(id: string): Promise<void> {
   const db = getDbOrThrow();
   await db.collection(COLLECTION).doc(id).delete();
 }
+
+/** 사진+글 상태 수동 전환. ActionRequest 승인 후에만 호출. */
+export async function setPhotostoryStatus(
+  id: string,
+  status: "waiting" | "completed"
+): Promise<void> {
+  const db = getDbOrThrow();
+  await db.collection(COLLECTION).doc(id).update({ status });
+}

@@ -6,8 +6,18 @@ import { listRelays } from "@/lib/relays";
 import { listKeywords } from "@/lib/keywords";
 import { listBookclubs } from "@/lib/bookclubs";
 import { listPhotostories } from "@/lib/photostories";
-import type { UserId } from "@/types/domain";
+import { listPendingRequests } from "@/lib/action-requests";
+import type { ActionRequestKind, UserId } from "@/types/domain";
 import AdminMyItemActions from "@/components/AdminMyItemActions";
+import RequestsList from "@/app/admin/requests/RequestsList";
+
+const SECTION_REQUEST_KINDS: Record<string, ActionRequestKind[]> = {
+  essay: [],
+  relay: ["delete-relay", "set-relay-status"],
+  keyword: ["delete-keyword"],
+  bookclub: ["delete-bookclub", "set-bookclub-status"],
+  photo: ["delete-photostory", "set-photostory-status"],
+};
 
 export const dynamic = "force-dynamic";
 
@@ -141,11 +151,19 @@ export default async function AdminMySectionPage({
   const cls = id === "Y" ? "y" : "h";
 
   const statusFilter = searchParams?.status ?? "all";
-  const allItems = await getItems(section, id);
+  const [allItems, allPending] = await Promise.all([
+    getItems(section, id),
+    listPendingRequests(),
+  ]);
   const items =
     statusFilter === "all"
       ? allItems
       : allItems.filter((it) => it.status === statusFilter);
+
+  const sectionKinds = SECTION_REQUEST_KINDS[section] ?? [];
+  const incomingRequests = allPending.filter(
+    (r) => sectionKinds.includes(r.kind) && r.requester !== id
+  );
 
   return (
     <div className="container fade-in" style={{ maxWidth: 980 }}>
@@ -204,6 +222,31 @@ export default async function AdminMySectionPage({
           </Link>
         ))}
       </div>
+
+      {incomingRequests.length > 0 && (
+        <div
+          className="card"
+          style={{
+            marginBottom: 20,
+            padding: 16,
+            background: "var(--paper-2)",
+            border: "1px solid var(--y-line)",
+          }}
+        >
+          <h3 className="section-title" style={{ marginBottom: 12 }}>
+            🔔 상대가 보낸 요청 ({incomingRequests.length})
+          </h3>
+          <div className="meta" style={{ marginBottom: 12, fontSize: 12 }}>
+            승인하면 실제로 처리돼요. 거절하면 변경되지 않아요.
+          </div>
+          <RequestsList
+            viewer={id}
+            incoming={incomingRequests}
+            outgoing={[]}
+            compact
+          />
+        </div>
+      )}
 
       {/* 상태 필터 */}
       <div

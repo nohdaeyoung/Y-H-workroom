@@ -128,6 +128,20 @@ export default function AdminAboutEditor({
             onChange={(e) => updateActive({ title: e.target.value })}
           />
 
+          {isProfile && (
+            <>
+              <label className="label" style={{ marginTop: 14 }}>
+                역할 한 줄 (알파벳 Y/H 옆에 손글씨로 표시 — 예: 기록하는 사람)
+              </label>
+              <input
+                className="input"
+                value={active.subtitle ?? ""}
+                onChange={(e) => updateActive({ subtitle: e.target.value })}
+                placeholder={active.key === "y_profile" ? "기록하는 사람" : "사진 찍는 사람"}
+              />
+            </>
+          )}
+
           <label className="label" style={{ marginTop: 14 }}>
             본문
           </label>

@@ -53,7 +53,7 @@ export default async function BookclubDetailPage({ params }: Props) {
         {b.transcript.map((t, i) => {
           const isY = t.speaker === "Y";
           const sameSpeaker = i > 0 && b.transcript[i - 1].speaker === t.speaker;
-          const name = isY ? "대영" : "희서";
+          const name = isY ? "Y" : "H";
           return (
             <div
               key={i}

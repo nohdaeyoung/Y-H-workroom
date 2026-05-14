@@ -6,6 +6,7 @@ import BookclubReviewClient from "@/components/BookclubReviewClient";
 import BookclubAudioUploader from "@/components/BookclubAudioUploader";
 import BookclubMetaForm from "@/components/BookclubMetaForm";
 import BookclubStatusForm from "@/components/BookclubStatusForm";
+import BookclubDeleteButton from "@/components/BookclubDeleteButton";
 
 type Props = { params: { id: string } };
 
@@ -61,6 +62,8 @@ export default async function BookclubReviewPage({ params }: Props) {
         bookclubId={b.id}
         initialTranscript={b.transcript}
       />
+
+      <BookclubDeleteButton id={b.id} />
     </div>
   );
 }
