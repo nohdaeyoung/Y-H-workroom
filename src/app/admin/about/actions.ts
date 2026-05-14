@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import DOMPurify from "isomorphic-dompurify";
+import { sanitizeRichHtml } from "@/lib/sanitize";
 import { auth } from "@/auth";
 import { saveAboutContent } from "@/lib/about";
 import type { AboutSection } from "@/types/domain";
@@ -32,9 +32,7 @@ export async function saveAboutAction(
       .map((s) => ({
         key: String(s.key).slice(0, 30),
         title: String(s.title).slice(0, 200),
-        body: DOMPurify.sanitize(String(s.body), {
-          USE_PROFILES: { html: true },
-        }),
+        body: sanitizeRichHtml(String(s.body)),
         imageUrl: typeof s.imageUrl === "string" ? s.imageUrl : undefined,
       }));
   } catch {

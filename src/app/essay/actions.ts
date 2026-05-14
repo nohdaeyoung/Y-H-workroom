@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import DOMPurify from "isomorphic-dompurify";
+import { sanitizeRichHtml } from "@/lib/sanitize";
 import { auth } from "@/auth";
 import { deleteEssay, getEssay, updateEssay } from "@/lib/essays";
 import type { EssayStatus } from "@/types/domain";
@@ -30,9 +30,7 @@ export async function updateEssayAction(
   if (essay.author !== uid)
     return { error: "본인 글만 수정할 수 있어요" };
 
-  const content = DOMPurify.sanitize(rawContent, {
-    USE_PROFILES: { html: true },
-  });
+  const content = sanitizeRichHtml(rawContent);
   const tags = tagInput
     .split(",")
     .map((t) => t.trim())

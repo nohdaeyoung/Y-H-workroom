@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import DOMPurify from "isomorphic-dompurify";
+import { sanitizeRichHtml } from "@/lib/sanitize";
 import { auth } from "@/auth";
 import {
   createPhotostory,
@@ -65,7 +65,7 @@ export async function writePhotostoryTextAction(
   const rawText = String(formData.get("text") ?? "");
   if (!id) return { error: "잘못된 요청" };
 
-  const text = DOMPurify.sanitize(rawText, { USE_PROFILES: { html: true } });
+  const text = sanitizeRichHtml(rawText);
   const res = await writePhotostoryText(id, author, text);
   if (!res.ok) return { error: res.error };
 
@@ -110,7 +110,7 @@ export async function updatePhotostoryAction(
 
   let text: string | undefined;
   if (textRaw !== undefined) {
-    text = DOMPurify.sanitize(textRaw, { USE_PROFILES: { html: true } });
+    text = sanitizeRichHtml(textRaw);
   }
 
   const res = await updatePhotostory(id, uid, { photoTitle, photos, text });

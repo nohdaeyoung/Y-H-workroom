@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import DOMPurify from "isomorphic-dompurify";
+import { sanitizeRichHtml } from "@/lib/sanitize";
 import { auth } from "@/auth";
 import { createComment, listComments } from "@/lib/comments";
 import type { Comment } from "@/types/domain";
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
 
   const nickname = String(body.nickname ?? "").trim().slice(0, 20);
   const rawText = String(body.text ?? "");
-  const text = DOMPurify.sanitize(rawText, { USE_PROFILES: { html: true } });
+  const text = sanitizeRichHtml(rawText);
   const textPlain = text.replace(/<[^>]+>/g, "").trim();
   if (!nickname || !textPlain) {
     return NextResponse.json(

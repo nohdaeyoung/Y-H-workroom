@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import DOMPurify from "isomorphic-dompurify";
+import { sanitizeRichHtml } from "@/lib/sanitize";
 import { auth } from "@/auth";
 import {
   createKeyword,
@@ -56,9 +56,7 @@ export async function writeKeywordEssayAction(
   const rawContent = String(formData.get("content") ?? "");
   if (!keywordId) return { error: "잘못된 요청" };
 
-  const content = DOMPurify.sanitize(rawContent, {
-    USE_PROFILES: { html: true },
-  });
+  const content = sanitizeRichHtml(rawContent);
   if (content.length > 1000)
     return { error: "1000자 이내로 부탁해요" };
 
@@ -106,9 +104,7 @@ export async function updateKeywordEssayAction(
   const rawContent = String(formData.get("content") ?? "");
   if (!id) return { error: "잘못된 요청" };
 
-  const content = DOMPurify.sanitize(rawContent, {
-    USE_PROFILES: { html: true },
-  });
+  const content = sanitizeRichHtml(rawContent);
   const res = await updateKeywordEssayContent(id, author, title, content);
   if (!res.ok) return { error: res.error ?? "수정 실패" };
   revalidatePath(`/keyword/${id}`);

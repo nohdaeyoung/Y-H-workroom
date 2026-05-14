@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import parse from "html-react-parser";
-import DOMPurify from "isomorphic-dompurify";
+import { sanitizeRichHtml } from "@/lib/sanitize";
 import { RichEditor } from "./RichEditor";
 import {
   deleteImpressionAction,
@@ -20,7 +20,7 @@ function formatDate(ts: number) {
 }
 
 function sanitize(html: string) {
-  return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
+  return sanitizeRichHtml(html);
 }
 
 function Pane({

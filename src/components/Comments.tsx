@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import parse from "html-react-parser";
-import DOMPurify from "isomorphic-dompurify";
+import { sanitizeRichHtml } from "@/lib/sanitize";
 import type { Comment } from "@/types/domain";
 import { RichEditor } from "@/components/RichEditor";
 
@@ -22,7 +22,7 @@ function formatTime(ts: number) {
 }
 
 function sanitize(html: string) {
-  return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
+  return sanitizeRichHtml(html);
 }
 
 function stripHtml(html: string) {

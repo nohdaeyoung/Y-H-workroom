@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import parse from "html-react-parser";
-import DOMPurify from "isomorphic-dompurify";
+import { sanitizeRichHtml } from "@/lib/sanitize";
 import type { Essay } from "@/types/domain";
 import { pairEssaysByDate } from "@/lib/mock-essays";
 import Comments from "./Comments";
@@ -19,7 +19,7 @@ function shortDate(ts: number) {
 }
 
 function sanitize(html: string) {
-  return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
+  return sanitizeRichHtml(html);
 }
 
 function EssayPane({

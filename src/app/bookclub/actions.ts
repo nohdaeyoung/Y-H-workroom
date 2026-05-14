@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
-import DOMPurify from "isomorphic-dompurify";
+import { sanitizeRichHtml } from "@/lib/sanitize";
 import {
   addBookclubQuote,
   createBookclubDraft,
@@ -198,9 +198,7 @@ export async function saveImpressionAction(
   if (author !== "Y" && author !== "H") return { error: "로그인이 필요해요" };
   const id = String(formData.get("id") ?? "");
   const title = String(formData.get("title") ?? "");
-  const content = DOMPurify.sanitize(String(formData.get("content") ?? ""), {
-    USE_PROFILES: { html: true },
-  });
+  const content = sanitizeRichHtml(String(formData.get("content") ?? ""));
   if (!id) return { error: "잘못된 요청" };
   const res = await setBookclubImpression(id, author, { title, content });
   if (!res.ok) return { error: res.error ?? "저장 실패" };

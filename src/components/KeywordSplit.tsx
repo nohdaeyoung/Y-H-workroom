@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import parse from "html-react-parser";
-import DOMPurify from "isomorphic-dompurify";
+import { sanitizeRichHtml } from "@/lib/sanitize";
 import type { KeywordEssay } from "@/types/domain";
 
 function formatDate(ts: number) {
@@ -113,7 +113,7 @@ function Pane({
             }}
           >
             {parse(
-              DOMPurify.sanitize(essay.content, { USE_PROFILES: { html: true } })
+              sanitizeRichHtml(essay.content)
             )}
           </div>
         </>
