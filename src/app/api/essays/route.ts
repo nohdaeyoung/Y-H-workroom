@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/auth";
 import { createEssay, listEssays } from "@/lib/essays";
 import { notifyOnNewItem } from "@/lib/notifications";
+import { sanitizeRichHtml } from "@/lib/sanitize";
 import type { EssayStatus, UserId } from "@/types/domain";
 
 export async function GET(req: NextRequest) {
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
     const essay = await createEssay({
       author: authorId,
       title: body.title.trim() || "(제목 없음)",
-      content: body.content,
+      content: sanitizeRichHtml(body.content),
       excerpt: typeof body.excerpt === "string" ? body.excerpt : undefined,
       tags: Array.isArray(body.tags) ? body.tags : [],
       status: (body.status as EssayStatus) ?? "published",

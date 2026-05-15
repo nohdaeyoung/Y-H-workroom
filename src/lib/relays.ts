@@ -248,31 +248,33 @@ export async function deleteSentence(
   const sentRef = ref.collection("sentences").doc(sentenceId);
   const sentDoc = await sentRef.get();
   if (!sentDoc.exists) return { ok: false, error: "문장을 찾을 수 없어요" };
-  const sentData = sentDoc.data() as { author: UserId };
+  const sentData = sentDoc.data() as { author: UserId; order: number };
   if (sentData.author !== author)
     return { ok: false, error: "본인 문장만 삭제할 수 있어요" };
 
+  // 마지막 문장만 단독 삭제 가능. 중간/시작 문장은 흐름이 깨지므로 차단.
+  const allSnap = await ref.collection("sentences").orderBy("order", "asc").get();
+  const lastOrder = allSnap.size - 1;
+  if (sentData.order !== lastOrder) {
+    return {
+      ok: false,
+      error: "마지막 문장만 삭제할 수 있어요 (이후 문장 흐름이 깨져요)",
+    };
+  }
+
   await sentRef.delete();
 
-  // 남은 문장으로 order 재정렬 + relay 메타 동기화
-  const remaining = await ref
-    .collection("sentences")
-    .orderBy("order", "asc")
-    .get();
+  // 남은 문장으로 relay 메타 동기화
+  const remaining = allSnap.docs.filter((d) => d.id !== sentenceId);
   const batch = db.batch();
-  remaining.docs.forEach((d, i) => batch.update(d.ref, { order: i }));
-  if (remaining.empty) {
-    batch.update(ref, {
-      sentenceCount: 0,
-      firstSentenceText: "",
-      lastSentenceText: "",
-      updatedAt: Date.now(),
-    });
+  if (remaining.length === 0) {
+    // 마지막 문장까지 사라지면 빈 relay 잔존 방지 — relay 자체 삭제
+    batch.delete(ref);
   } else {
-    const first = remaining.docs[0].data() as RelaySentence;
-    const last = remaining.docs[remaining.docs.length - 1].data() as RelaySentence;
+    const first = remaining[0].data() as RelaySentence;
+    const last = remaining[remaining.length - 1].data() as RelaySentence;
     batch.update(ref, {
-      sentenceCount: remaining.size,
+      sentenceCount: remaining.length,
       firstSentenceText: first.text,
       lastSentenceText: last.text,
       lastAuthor: last.author,

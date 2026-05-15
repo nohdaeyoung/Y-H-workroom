@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import PhotoPlaceholder from "./PhotoPlaceholder";
+import Comments from "./Comments";
 import type { Photostory } from "@/types/domain";
 
 type Filter = "all" | "h2y" | "y2h";
@@ -62,9 +63,11 @@ function PhotoSlider({ photos, title }: { photos: string[]; title: string }) {
               flex: "0 0 100%",
               scrollSnapAlign: "start",
               width: "100%",
-              aspectRatio: "1 / 1",
-              overflow: "hidden",
               background: "var(--paper-2)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: 240,
             }}
           >
             <img
@@ -74,8 +77,9 @@ function PhotoSlider({ photos, title }: { photos: string[]; title: string }) {
               decoding="async"
               style={{
                 width: "100%",
-                height: "100%",
-                objectFit: "cover",
+                height: "auto",
+                maxHeight: "80vh",
+                objectFit: "contain",
                 display: "block",
               }}
             />
@@ -131,7 +135,7 @@ function PhotoSlider({ photos, title }: { photos: string[]; title: string }) {
   );
 }
 
-function FeedCard({ story }: { story: Photostory }) {
+function FeedCard({ story, isYH }: { story: Photostory; isYH: boolean }) {
   const waiting = story.status === "waiting";
   const plain = story.text ? stripHtml(story.text) : "";
 
@@ -187,13 +191,15 @@ function FeedCard({ story }: { story: Photostory }) {
             {waiting && <span style={{ marginLeft: 8 }}>· ⏳ 글 대기중</span>}
           </div>
         </div>
-        <Link
-          href={`/photostory/${story.id}`}
-          className="btn btn-ghost btn-sm"
-          style={{ fontSize: 12 }}
-        >
-          상세 →
-        </Link>
+        {isYH && (
+          <Link
+            href={`/photostory/${story.id}/edit`}
+            className="btn btn-ghost btn-sm"
+            style={{ fontSize: 12 }}
+          >
+            ✎ 편집
+          </Link>
+        )}
       </div>
 
       {/* 사진 */}
@@ -238,6 +244,15 @@ function FeedCard({ story }: { story: Photostory }) {
           </div>
         )}
       </div>
+
+      <div
+        style={{
+          borderTop: "1px solid var(--line)",
+          padding: "12px 20px 18px",
+        }}
+      >
+        <Comments parentType="photostory" parentId={story.id} isYH={isYH} />
+      </div>
     </article>
   );
 }
@@ -245,9 +260,11 @@ function FeedCard({ story }: { story: Photostory }) {
 export default function PhotostoryListClient({
   items,
   canUpload,
+  isYH,
 }: {
   items: Photostory[];
   canUpload: boolean;
+  isYH: boolean;
 }) {
   const [filter, setFilter] = useState<Filter>("all");
 
@@ -319,7 +336,7 @@ export default function PhotostoryListClient({
       ) : (
         <div>
           {filtered.map((p) => (
-            <FeedCard key={p.id} story={p} />
+            <FeedCard key={p.id} story={p} isYH={isYH} />
           ))}
         </div>
       )}

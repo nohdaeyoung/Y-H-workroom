@@ -192,7 +192,9 @@ export async function updateKeywordEssayContent(
   const mine = author === "Y" ? data.yEssay : data.hEssay;
   if (!mine) return { ok: false, error: "아직 쓴 글이 없어요" };
   const cleanTitle = title.trim().slice(0, 100);
-  const cleanContent = content.slice(0, MAX_CONTENT_LEN);
+  if (content.length > MAX_CONTENT_LEN)
+    return { ok: false, error: `${MAX_CONTENT_LEN}자 이내로 부탁해요` };
+  const cleanContent = content;
   if (!cleanTitle) return { ok: false, error: "제목을 적어주세요" };
   if (!cleanContent.replace(/<[^>]+>/g, "").trim())
     return { ok: false, error: "본문을 적어주세요" };

@@ -45,9 +45,8 @@ export async function createDraftAction(
   const duration = String(formData.get("duration") ?? "").trim();
   const coverUrlRaw = String(formData.get("coverUrl") ?? "").trim();
   const coverUrl = coverUrlRaw.startsWith("http") ? coverUrlRaw : null;
-  const statusRaw = String(formData.get("status") ?? "reading");
-  const status: BookclubStatus =
-    statusRaw === "met" || statusRaw === "finished" ? statusRaw : "reading";
+  // 새 모임은 반드시 "reading"으로 생성. met/finished 전환은 동의 요청을 거쳐야 함.
+  const status: BookclubStatus = "reading";
 
   if (!bookTitle || !bookAuthor || !meetingDate) {
     return { error: "책 제목, 저자, 모임 날짜를 모두 적어주세요" };
@@ -74,26 +73,29 @@ export async function createDraftAction(
 
 /**
  * 독서모임 상태 전환 — 동의 요청 생성. 상대 승인 시 /admin/requests에서 실제 반영.
+ * 결과 상태(ok/error)를 반환해서 UI가 silent failure를 잡을 수 있게.
  */
-export async function setStatusAction(formData: FormData) {
+export async function setStatusAction(
+  formData: FormData
+): Promise<BookclubActionState> {
   "use server";
   const session = await auth();
   const uid = session?.user?.id;
-  if (uid !== "Y" && uid !== "H") return;
+  if (uid !== "Y" && uid !== "H") return { error: "로그인이 필요해요" };
   const id = String(formData.get("id") ?? "");
   const statusRaw = String(formData.get("status") ?? "");
-  if (!id) return;
+  if (!id) return { error: "잘못된 요청" };
   const status: BookclubStatus =
     statusRaw === "reading" || statusRaw === "met" || statusRaw === "finished"
       ? statusRaw
       : "reading";
 
-  const existing = await findPendingRequest("set-bookclub-status", id);
-  if (existing) return;
-
   const b = await getBookclub(id);
-  if (!b) return;
-  if (b.status === status) return;
+  if (!b) return { error: "찾을 수 없어요" };
+  if (b.status === status) return { error: "이미 그 상태예요" };
+
+  const existing = await findPendingRequest("set-bookclub-status", id);
+  if (existing) return { error: "이미 대기 중인 상태 전환 요청이 있어요" };
 
   await createActionRequest({
     kind: "set-bookclub-status",
@@ -108,6 +110,7 @@ export async function setStatusAction(formData: FormData) {
     targetLabel: b.bookTitle,
   });
   revalidatePath("/admin/requests");
+  return { error: "", ok: true };
 }
 
 /**

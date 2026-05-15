@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { setStatusAction } from "@/app/bookclub/actions";
 import { BOOKCLUB_STATUS_LABEL, type BookclubStatus } from "@/types/domain";
 
@@ -13,17 +13,25 @@ export default function BookclubStatusForm({
   id: string;
   status: BookclubStatus;
 }) {
-  const [pending, startTransition] = useTransition();
-  const [requested, setRequested] = useState<BookclubStatus | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
-  function onChange(next: BookclubStatus) {
-    if (next === status || pending) return;
+  async function onChange(next: BookclubStatus) {
+    if (next === status || busy) return;
+    setBusy(true);
+    setMsg(null);
     const fd = new FormData();
     fd.set("id", id);
     fd.set("status", next);
-    startTransition(() => {
-      setStatusAction(fd);
-      setRequested(next);
+    const res = await setStatusAction(fd);
+    setBusy(false);
+    if (res.error) {
+      setMsg({ text: res.error, ok: false });
+      return;
+    }
+    setMsg({
+      text: `✓ "${BOOKCLUB_STATUS_LABEL[next]}"로 전환 요청 보냈어요 — 상대 승인 필요`,
+      ok: true,
     });
   }
 
@@ -37,10 +45,10 @@ export default function BookclubStatusForm({
               key={s}
               type="button"
               onClick={() => onChange(s)}
-              disabled={pending}
+              disabled={busy}
               className={active ? "btn btn-primary btn-sm" : "btn btn-sm"}
               style={{
-                opacity: pending && !active ? 0.5 : 1,
+                opacity: busy && !active ? 0.5 : 1,
                 fontSize: 13,
               }}
             >
@@ -49,12 +57,15 @@ export default function BookclubStatusForm({
           );
         })}
       </div>
-      {requested && (
+      {msg && (
         <div
           className="meta"
-          style={{ fontSize: 11, color: "var(--success)" }}
+          style={{
+            fontSize: 11,
+            color: msg.ok ? "var(--success)" : "var(--danger)",
+          }}
         >
-          ✓ &quot;{BOOKCLUB_STATUS_LABEL[requested]}&quot;로 전환 요청 보냈어요 — 상대 승인 필요
+          {msg.text}
         </div>
       )}
     </div>

@@ -39,9 +39,7 @@ export default function EssayEditForm({
       <div className="card" style={{ padding: 28 }}>
         <div className="row gap-8" style={{ marginBottom: 14 }}>
           <span className={`avatar-mini ${cls}`}>{authorId}</span>
-          <span className="meta">
-            {authorId === "Y" ? "대영" : "희서"}이(가) 쓴 글
-          </span>
+          <span className="meta">{authorId}가 쓴 글</span>
         </div>
 
         <input

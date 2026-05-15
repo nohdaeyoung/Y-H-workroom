@@ -27,26 +27,32 @@ export async function executeActionRequest(req: ActionRequest): Promise<void> {
       return;
     }
     case "set-bookclub-status": {
-      const { setBookclubStatus } = await import("@/lib/bookclubs");
+      const { setBookclubStatus, getBookclub } = await import("@/lib/bookclubs");
       const status = String(req.payload?.status ?? "");
       if (status !== "reading" && status !== "met" && status !== "finished")
         throw new Error("invalid status");
+      const cur = await getBookclub(req.targetId);
+      if (!cur || cur.status === status) return; // 이미 같은 상태 → no-op (멱등)
       await setBookclubStatus(req.targetId, status);
       return;
     }
     case "set-photostory-status": {
-      const { setPhotostoryStatus } = await import("@/lib/photostories");
+      const { setPhotostoryStatus, getPhotostory } = await import("@/lib/photostories");
       const status = String(req.payload?.status ?? "");
       if (status !== "waiting" && status !== "completed")
         throw new Error("invalid status");
+      const cur = await getPhotostory(req.targetId);
+      if (!cur || cur.status === status) return; // no-op
       await setPhotostoryStatus(req.targetId, status);
       return;
     }
     case "set-relay-status": {
-      const { setRelayStatus } = await import("@/lib/relays");
+      const { setRelayStatus, getRelayWithSentences } = await import("@/lib/relays");
       const status = String(req.payload?.status ?? "");
       if (status !== "ongoing" && status !== "completed")
         throw new Error("invalid status");
+      const cur = await getRelayWithSentences(req.targetId);
+      if (!cur || cur.status === status) return; // no-op
       await setRelayStatus(req.targetId, status);
       return;
     }

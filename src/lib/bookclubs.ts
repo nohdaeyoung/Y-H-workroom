@@ -243,10 +243,12 @@ export async function deleteBookclubQuote(
   const doc = await ref.get();
   if (!doc.exists) return { ok: false, error: "찾을 수 없어요" };
   const data = doc.data() as Bookclub;
-  const quotes = (data.quotes ?? []).filter((q) => {
-    if (q.id !== quoteId) return true;
-    return q.author !== author; // 본인 문장만 삭제
-  });
+  const existing = data.quotes ?? [];
+  const target = existing.find((q) => q.id === quoteId);
+  if (!target) return { ok: false, error: "문장을 찾을 수 없어요" };
+  if (target.author !== author)
+    return { ok: false, error: "본인 문장만 삭제할 수 있어요" };
+  const quotes = existing.filter((q) => q.id !== quoteId);
   await ref.update({ quotes });
   return { ok: true };
 }

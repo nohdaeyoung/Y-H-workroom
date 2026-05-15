@@ -86,7 +86,7 @@ export default function RelayEditForm({
         문장
       </h3>
       <div className="col gap-12">
-        {relay.sentences.map((s) => (
+        {relay.sentences.map((s, idx) => (
           <SentenceEditor
             key={s.id}
             relayId={relay.id}
@@ -95,6 +95,7 @@ export default function RelayEditForm({
             author={s.author}
             order={s.order}
             editable={s.author === viewer}
+            isLast={idx === relay.sentences.length - 1}
           />
         ))}
       </div>
@@ -154,6 +155,7 @@ function SentenceEditor({
   author,
   order,
   editable,
+  isLast,
 }: {
   relayId: string;
   sentenceId: string;
@@ -161,6 +163,7 @@ function SentenceEditor({
   author: "Y" | "H";
   order: number;
   editable: boolean;
+  isLast: boolean;
 }) {
   const router = useRouter();
   const [text, setText] = useState(initialText);
@@ -239,15 +242,18 @@ function SentenceEditor({
             </span>
           )}
           <div className="row gap-8" style={{ marginLeft: "auto" }}>
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={deleteMine}
-              disabled={saving || deleting}
-              style={{ color: "var(--danger)" }}
-            >
-              {deleting ? "삭제 중…" : "🗑 문장 삭제"}
-            </button>
+            {isLast && (
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={deleteMine}
+                disabled={saving || deleting}
+                style={{ color: "var(--danger)" }}
+                title="마지막 문장만 삭제 가능"
+              >
+                {deleting ? "삭제 중…" : "🗑 문장 삭제"}
+              </button>
+            )}
             <button
               type="button"
               className="btn btn-sm"

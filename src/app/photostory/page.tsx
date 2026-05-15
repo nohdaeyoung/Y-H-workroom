@@ -10,6 +10,6 @@ export default async function PhotostoryListPage() {
   const isYH = !!session?.user?.id;
   const items = await listPhotostories({ includeWaiting: isYH });
   return (
-    <PhotostoryListClient items={items} canUpload={isYH} />
+    <PhotostoryListClient items={items} canUpload={isYH} isYH={isYH} />
   );
 }
