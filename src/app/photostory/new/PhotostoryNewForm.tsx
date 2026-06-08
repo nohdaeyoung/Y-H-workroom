@@ -18,7 +18,6 @@ export default function PhotostoryNewForm({ author }: { author: "Y" | "H" }) {
   const [uploading, setUploading] = useState(false);
   const [uploadErr, setUploadErr] = useState<string | null>(null);
   const [state, action] = useFormState(createPhotostoryAction, initial);
-  const cls = author === "Y" ? "y" : "h";
 
   function pickFiles(files: FileList | null) {
     if (!files) return;
@@ -63,9 +62,8 @@ export default function PhotostoryNewForm({ author }: { author: "Y" | "H" }) {
 
       <div className="card" style={{ padding: 24 }}>
         <div className="row gap-8" style={{ marginBottom: 16 }}>
-          <span className={`avatar-mini ${cls}`}>{author}</span>
           <span className="hand" style={{ fontSize: 17, color: "var(--ink-3)" }}>
-            {author === "Y" ? "대영" : "희서"} → 상대방의 글로 완성됩니다
+            사진을 올린 뒤 글을 이어 적습니다
           </span>
         </div>
 
@@ -220,7 +218,7 @@ function SubmitBtn({ disabled }: { disabled: boolean }) {
       className="btn btn-primary"
       disabled={pending || disabled}
     >
-      {pending ? "올리는 중…" : "사진 게시 → 상대 글 기다리기"}
+      {pending ? "올리는 중…" : "사진 게시"}
     </button>
   );
 }

@@ -197,7 +197,7 @@ function SaveBtn() {
 export default function BookclubImpressions({
   bookclubId,
   yImpression,
-  hImpression,
+  hImpression: _hImpression,
   viewer,
 }: {
   bookclubId: string;
@@ -205,42 +205,14 @@ export default function BookclubImpressions({
   hImpression: BookclubImpression | null;
   viewer: "Y" | "H" | null;
 }) {
-  const [mobileTab, setMobileTab] = useState<"y" | "h">("y");
-
   return (
-    <div data-essay-mobile-tab={mobileTab}>
-      <div className="essay-mobile-tabs" style={{ marginBottom: 14 }}>
-        <button
-          type="button"
-          className={`btn btn-sm ${mobileTab === "y" ? "btn-y" : ""}`}
-          onClick={() => setMobileTab("y")}
-          style={{ flex: 1 }}
-        >Y</button>
-        <button
-          type="button"
-          className={`btn btn-sm ${mobileTab === "h" ? "btn-h" : ""}`}
-          onClick={() => setMobileTab("h")}
-          style={{ flex: 1 }}
-        >H</button>
-      </div>
-      <div className="split essay-split">
-        <div className="essay-pane-y">
-          <Pane
-            bookclubId={bookclubId}
-            author="Y"
-            impression={yImpression}
-            viewer={viewer}
-          />
-        </div>
-        <div className="essay-pane-h">
-          <Pane
-            bookclubId={bookclubId}
-            author="H"
-            impression={hImpression}
-            viewer={viewer}
-          />
-        </div>
-      </div>
+    <div>
+      <Pane
+        bookclubId={bookclubId}
+        author="Y"
+        impression={yImpression}
+        viewer={viewer}
+      />
     </div>
   );
 }

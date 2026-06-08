@@ -49,7 +49,7 @@ function renderHtml(p: NotifyPayload, recipient: UserId): string {
   <body style="margin:0;padding:24px;background:#f7f3eb;font-family:'Apple SD Gothic Neo','Pretendard',system-ui,sans-serif;color:#3a342c;">
     <table cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:560px;margin:0 auto;background:#fbfaf6;border-radius:14px;padding:32px;">
       <tr><td>
-        <div style="font-family:'Gaegu','Nanum Pen Script',cursive;font-size:18px;color:#85756a;margin-bottom:8px;">영희네 작업실</div>
+        <div style="font-family:'Gaegu','Nanum Pen Script',cursive;font-size:18px;color:#85756a;margin-bottom:8px;">영이네 작업실</div>
         <h1 style="font-family:'Noto Serif KR',serif;font-size:22px;font-weight:600;margin:0 0 16px 0;line-height:1.4;">
           ${toName}, ${fromName}가 ${kindLabel}을 남겼어요.
         </h1>
@@ -118,7 +118,7 @@ function renderRequestHtml(p: RequestNotifyPayload, recipient: UserId): string {
   <body style="margin:0;padding:24px;background:#f7f3eb;font-family:'Apple SD Gothic Neo','Pretendard',system-ui,sans-serif;color:#3a342c;">
     <table cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:560px;margin:0 auto;background:#fbfaf6;border-radius:14px;padding:32px;">
       <tr><td>
-        <div style="font-family:'Gaegu','Nanum Pen Script',cursive;font-size:18px;color:#85756a;margin-bottom:8px;">영희네 작업실 · 동의 요청</div>
+        <div style="font-family:'Gaegu','Nanum Pen Script',cursive;font-size:18px;color:#85756a;margin-bottom:8px;">영이네 작업실 · 동의 요청</div>
         <h1 style="font-family:'Noto Serif KR',serif;font-size:22px;font-weight:600;margin:0 0 16px 0;line-height:1.4;">
           ${toName}, ${fromName}가 [${kindLabel}]을 요청했어요.
         </h1>

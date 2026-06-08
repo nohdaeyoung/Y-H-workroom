@@ -44,7 +44,7 @@ export default function SiteSettingsForm({ initial: data }: { initial: SiteSetti
           name="metaTitle"
           value={metaTitle}
           onChange={(e) => setMetaTitle(e.target.value)}
-          placeholder="영희네 작업실"
+          placeholder="영이네 작업실"
           maxLength={200}
         />
 
@@ -54,7 +54,7 @@ export default function SiteSettingsForm({ initial: data }: { initial: SiteSetti
           name="metaDescription"
           value={metaDescription}
           onChange={(e) => setMetaDescription(e.target.value)}
-          placeholder="두 사람의 글과 사진이 만나는 곳"
+          placeholder="영이의 글과 사진이 머무는 곳"
           maxLength={500}
         />
 

@@ -4,7 +4,7 @@ import { listBookclubs } from "@/lib/bookclubs";
 import { BOOKCLUB_STATUS_LABEL, type Bookclub } from "@/types/domain";
 import BookCover from "@/components/BookCover";
 
-export const metadata = { title: "독서모임 — 영희네 작업실" };
+export const metadata = { title: "독서모임 — 영이네 작업실" };
 export const dynamic = "force-dynamic";
 
 function BookclubCard({ b }: { b: Bookclub }) {

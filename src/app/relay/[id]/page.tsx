@@ -5,6 +5,8 @@ import { getRelayWithSentences } from "@/lib/relays";
 import RelayInputForm from "./RelayInputForm";
 import RelayAgreeForm from "./RelayAgreeForm";
 import MySentenceActions from "./MySentenceActions";
+import { RegenerateAiButton, RequestAiButton } from "./RelayAiActions";
+import Comments from "@/components/Comments";
 
 type Props = { params: { id: string } };
 
@@ -21,28 +23,26 @@ function formatDate(ts: number) {
 }
 
 export default async function RelayDetailPage({ params }: Props) {
-  const [relay, session] = await Promise.all([
+  const [r, session] = await Promise.all([
     getRelayWithSentences(params.id),
     auth(),
   ]);
-  if (!relay) notFound();
+  if (!r) notFound();
 
   const uid = session?.user?.id;
-  const isYH = uid === "Y" || uid === "H";
-  const lastAuthor = relay.lastAuthor;
-  const blocked = isYH && uid === lastAuthor;
+  const isYH = !!uid;
+
+  const last = r.sentences.length > 0 ? r.sentences[r.sentences.length - 1] : null;
+  const lastIsAi = last?.source === "ai";
 
   return (
-    <div className="container narrow fade-in" style={{ maxWidth: 680 }}>
+    <div className="container narrow fade-in" style={{ maxWidth: 880 }}>
       <div className="row-between" style={{ marginBottom: 20 }}>
         <Link href="/relay" className="btn btn-ghost btn-sm">
           ← 이어쓰기 목록
         </Link>
         {isYH && (
-          <Link
-            href={`/relay/${relay.id}/edit`}
-            className="btn btn-ghost btn-sm"
-          >
+          <Link href={`/relay/${r.id}/edit`} className="btn btn-ghost btn-sm">
             ✎ 수정
           </Link>
         )}
@@ -52,138 +52,133 @@ export default async function RelayDetailPage({ params }: Props) {
         <div className="hand" style={{ fontSize: 20, color: "var(--ink-3)" }}>
           relay
         </div>
-        <h1 className="serif" style={{ fontSize: 30, marginTop: 4 }}>
-          {relay.title}
-        </h1>
-        <div
-          className="row gap-8"
-          style={{ justifyContent: "center", marginTop: 10 }}
+        <h1
+          className="serif"
+          style={{ fontSize: 30, marginTop: 6, letterSpacing: "-0.02em" }}
         >
-          {relay.status === "completed" ? (
-            <span className="chip" style={{ background: "var(--paper-ink)" }}>
-              완결 ✓
-            </span>
-          ) : (
-            <span className="chip live">이어지는 중</span>
-          )}
-          <span className="meta">{relay.sentenceCount}문장</span>
+          「{r.title}」
+        </h1>
+        <div className="meta" style={{ marginTop: 8 }}>
+          {r.sentenceCount}문장 ·{" "}
+          {r.status === "completed" ? "완결" : "이어가는 중"}
         </div>
       </div>
 
-      {/* 타임라인 */}
-      <div style={{ position: "relative", paddingLeft: 28 }}>
-        <div
-          style={{
-            position: "absolute",
-            left: 5,
-            top: 8,
-            bottom: 8,
-            width: 2,
-            background: "var(--line)",
-          }}
-        />
-        {relay.sentences.map((s, idx) => {
-          const showAuthor = isYH;
-          const cls = s.author === "Y" ? "y" : "h";
-          const bg =
-            s.author === "Y" ? "oklch(0.965 0.03 82)" : "oklch(0.96 0.018 250)";
-          const bd = s.author === "Y" ? "var(--y-line)" : "var(--h-line)";
-          const isLast = idx === relay.sentences.length - 1;
-          const isMineLast =
-            isYH &&
-            s.author === uid &&
-            isLast &&
-            relay.status === "ongoing";
+      <div className="col gap-10">
+        {r.sentences.map((s, i) => {
+          const isAi = s.source === "ai";
+          const isLast = i === r.sentences.length - 1;
+          const isMineEditable =
+            !isAi && uid === s.author && isLast && r.status !== "completed";
+          const bgGrad = isAi
+            ? "linear-gradient(180deg, oklch(0.965 0.025 250) 0%, var(--paper-2) 100%)"
+            : "var(--paper-2)";
+          const borderColor = isAi ? "oklch(0.85 0.04 250)" : "var(--y-line)";
+
           return (
-            <div key={s.id} style={{ position: "relative", marginBottom: 20 }}>
-              <div
-                className={`timeline-dot ${showAuthor ? cls : ""}`}
-                style={{ position: "absolute", left: -28, top: 12 }}
-              />
-              <div
-                className="card-flat"
-                style={{
-                  padding: "14px 18px",
-                  background: showAuthor ? bg : "var(--paper-2)",
-                  border: "1px solid",
-                  borderColor: showAuthor ? bd : "var(--line)",
-                  borderRadius: "var(--r-md)",
-                }}
-              >
-                <div className="serif" style={{ fontSize: 16, lineHeight: 1.8 }}>
-                  {s.text}
-                </div>
-                <div
-                  className="row gap-8"
-                  style={{
-                    justifyContent: "flex-end",
-                    marginTop: 8,
-                    fontSize: 12,
-                    color: "var(--ink-4)",
-                  }}
-                >
-                  <span className="hand" style={{ fontSize: 15 }}>
-                    — {showAuthor ? s.author : "???"}
+            <div
+              key={s.id}
+              className="card"
+              style={{
+                padding: "16px 22px",
+                background: bgGrad,
+                borderColor,
+              }}
+            >
+              <div className="row gap-8" style={{ marginBottom: 6, alignItems: "center" }}>
+                <span className="meta" style={{ fontSize: 12 }}>
+                  #{i + 1}
+                </span>
+                {isAi ? (
+                  <span
+                    className="chip"
+                    style={{
+                      background: "oklch(0.55 0.13 250)",
+                      color: "white",
+                      borderColor: "oklch(0.55 0.13 250)",
+                      fontSize: 11,
+                      padding: "2px 8px",
+                    }}
+                  >
+                    ✨ AI
                   </span>
-                  <span>·</span>
-                  <span>{formatDate(s.createdAt)}</span>
-                </div>
-                {isMineLast && (
-                  <MySentenceActions
-                    relayId={relay.id}
-                    sentenceId={s.id}
-                    initialText={s.text}
-                  />
+                ) : (
+                  <span
+                    className="chip"
+                    style={{
+                      background: "var(--y-deep)",
+                      color: "white",
+                      borderColor: "var(--y-deep)",
+                      fontSize: 11,
+                      padding: "2px 8px",
+                    }}
+                  >
+                    영이
+                  </span>
+                )}
+                <span className="meta">{formatDate(s.createdAt)}</span>
+                {isAi && isLast && isYH && r.status !== "completed" && (
+                  <span style={{ marginLeft: "auto" }}>
+                    <RegenerateAiButton relayId={r.id} />
+                  </span>
                 )}
               </div>
+              <div
+                className="serif"
+                style={{
+                  fontSize: 16.5,
+                  lineHeight: 1.85,
+                  color: "var(--ink)",
+                  whiteSpace: "pre-wrap",
+                }}
+              >
+                {s.text}
+              </div>
+              {isMineEditable && (
+                <MySentenceActions
+                  relayId={r.id}
+                  sentenceId={s.id}
+                  initialText={s.text}
+                />
+              )}
             </div>
           );
         })}
       </div>
 
-      {/* 이어쓰기 입력 */}
-      {relay.status === "ongoing" && isYH && (
-        <RelayInputForm
-          relayId={relay.id}
-          author={uid as "Y" | "H"}
-          blocked={blocked}
-        />
-      )}
-
-      {relay.status === "ongoing" && !isYH && (
+      {isYH && r.status !== "completed" && !lastIsAi && r.sentences.length > 0 && (
         <div
-          className="card-flat"
           style={{
-            marginTop: 24,
-            padding: 16,
-            textAlign: "center",
-            background: "var(--paper-ink)",
-            border: "1px dashed var(--line-2)",
+            marginTop: 18,
+            padding: 14,
+            borderRadius: "var(--r-md)",
+            background: "oklch(0.965 0.025 250 / 0.6)",
+            border: "1px dashed oklch(0.75 0.06 250)",
           }}
         >
-          <span className="meta">이어쓰기는 Y/H만 가능해요 — </span>
-          <Link
-            href={`/login?from=/relay/${relay.id}`}
-            style={{
-              color: "var(--ink)",
-              fontWeight: 500,
-              textDecoration: "underline",
-            }}
-          >
-            로그인
-          </Link>
+          <div className="meta" style={{ marginBottom: 8, fontSize: 12 }}>
+            AI 차례가 비어 있어요. 받을까요?
+          </div>
+          <RequestAiButton relayId={r.id} />
         </div>
       )}
 
-      {/* 완결 동의 상태 */}
-      {relay.status === "ongoing" && (
+      {isYH && r.status !== "completed" && (
+        <RelayInputForm relayId={r.id} author={uid as "Y" | "H"} blocked={false} />
+      )}
+
+      {isYH && (
         <RelayAgreeForm
-          relayId={relay.id}
-          yAgreed={relay.yAgreed}
-          hAgreed={relay.hAgreed}
-          viewer={isYH ? (uid as "Y" | "H") : null}
+          relayId={r.id}
+          yAgreed={r.yAgreed}
+          hAgreed={r.hAgreed}
+          viewer={uid as "Y" | "H"}
         />
       )}
+
+      <div className="divider-dot" />
+
+      <Comments parentType="relay" parentId={r.id} isYH={isYH} />
     </div>
   );
 }

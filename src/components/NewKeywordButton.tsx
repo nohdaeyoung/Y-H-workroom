@@ -9,7 +9,7 @@ type Props = {
 };
 
 const DISABLED_MESSAGE =
-  "이전 키워드에 Y와 H 둘 다 글을 써야 새 키워드를 받을 수 있어요.";
+  "이전 키워드에 글을 써야 새 키워드를 받을 수 있어요.";
 
 export default function NewKeywordButton({
   canRequest,

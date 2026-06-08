@@ -21,8 +21,8 @@ const gaegu = Gaegu({
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getSiteSettings();
-  const title = s.metaTitle || "영희네 작업실";
-  const description = s.metaDescription || "두 사람의 글과 사진이 만나는 곳";
+  const title = s.metaTitle || "영이네 작업실";
+  const description = s.metaDescription || "영이의 글과 사진이 머무는 곳";
   return {
     title,
     description,

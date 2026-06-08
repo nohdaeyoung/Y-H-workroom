@@ -39,35 +39,26 @@ type Activity = {
   link: string;
 };
 
-function authorBadge(author: "Y" | "H") {
-  return (
-    <span className={author === "Y" ? "text-y" : "text-h"}>
-      {author === "Y" ? "Y" : "H"}
-    </span>
-  );
-}
-
 export default async function HomePage() {
   const [essays, relays, keywords, bookclubs, photostories] = await Promise.all([
-    listEssays({ status: "published", limit: 50 }),
+    listEssays({ status: "published", author: "Y", limit: 50 }),
     listRelays(),
     listKeywords(),
     listBookclubs(),
     listPhotostories(),
   ]);
 
-  // 각 컬렉션 → Activity로 변환
+  const yPhotos = photostories.filter(
+    (p) => p.photoAuthor === "Y" && (p.status === "completed" || p.textAuthor === "Y")
+  );
+
   const activities: Activity[] = [];
 
   for (const e of essays) {
     activities.push({
       icon: "📝",
       kind: "에세이",
-      text: (
-        <>
-          {authorBadge(e.author)}가 「{e.title}」 을 썼습니다
-        </>
-      ),
+      text: <>「{e.title}」 을 썼습니다</>,
       when: relativeTime(e.createdAt),
       ts: e.createdAt,
       link: `/essay/${e.id}`,
@@ -82,9 +73,7 @@ export default async function HomePage() {
         r.status === "completed" ? (
           <>「{r.title}」이 완결됐어요</>
         ) : (
-          <>
-            「{r.title}」에 {authorBadge(r.lastAuthor)}가 이어 썼습니다
-          </>
+          <>「{r.title}」에 한 문장 이어 썼습니다</>
         ),
       when: relativeTime(r.updatedAt),
       ts: r.updatedAt,
@@ -93,32 +82,16 @@ export default async function HomePage() {
   }
 
   for (const k of keywords) {
-    let text: ReactNode;
-    if (k.status === "both_done") {
-      text = <>키워드 &ldquo;{k.keyword}&rdquo; 둘 다 완성 · 공개</>;
-    } else if (k.status === "y_done") {
-      text = (
-        <>
-          키워드 &ldquo;{k.keyword}&rdquo; — Y <span className="text-y">✅</span>{" "}
-          H <span className="text-ink-soft">⏳</span>
-        </>
-      );
-    } else if (k.status === "h_done") {
-      text = (
-        <>
-          키워드 &ldquo;{k.keyword}&rdquo; — Y <span className="text-ink-soft">⏳</span>{" "}
-          H <span className="text-h">✅</span>
-        </>
-      );
-    } else {
-      text = <>새 키워드 &ldquo;{k.keyword}&rdquo;</>;
-    }
     activities.push({
       icon: "🎲",
       kind: "키워드",
-      text,
-      when: relativeTime(k.suggestedAt),
-      ts: k.suggestedAt,
+      text: k.yEssay ? (
+        <>키워드 &ldquo;{k.keyword}&rdquo;에 글 한 편</>
+      ) : (
+        <>새 키워드 &ldquo;{k.keyword}&rdquo;</>
+      ),
+      when: relativeTime(k.yEssay?.writtenAt ?? k.suggestedAt),
+      ts: k.yEssay?.writtenAt ?? k.suggestedAt,
       link: `/keyword/${k.id}`,
     });
   }
@@ -134,27 +107,17 @@ export default async function HomePage() {
     });
   }
 
-  for (const p of photostories) {
-    let text: ReactNode;
-    if (p.status === "completed") {
-      text = (
-        <>
-          {authorBadge(p.photoAuthor)}의 사진에 {authorBadge(p.textAuthor)}의 글이 채워졌어요
-        </>
-      );
-    } else {
-      text = (
-        <>
-          {authorBadge(p.photoAuthor)}가 사진을 올렸습니다 ·{" "}
-          {authorBadge(p.textAuthor)}의 글 대기중
-        </>
-      );
-    }
+  for (const p of yPhotos) {
     const ts = p.textWrittenAt ?? p.photoUploadedAt;
     activities.push({
       icon: "📷",
       kind: "사진+글",
-      text,
+      text:
+        p.status === "completed" ? (
+          <>「{p.photoTitle}」 사진+글</>
+        ) : (
+          <>「{p.photoTitle}」 사진 올림 · 글 대기중</>
+        ),
       when: relativeTime(ts),
       ts,
       link: `/photostory/${p.id}`,
@@ -163,18 +126,16 @@ export default async function HomePage() {
 
   const recent = activities.sort((a, b) => b.ts - a.ts).slice(0, 6);
 
-  // 둘러보기 카운트
-  const publishedBookclubs = bookclubs.filter((b) => b.status !== "reading")
-    .length;
-  const completedPhotos = photostories.filter((p) => p.status === "completed")
-    .length;
+  const publishedBookclubs = bookclubs.filter((b) => b.status !== "reading").length;
+  const completedPhotos = yPhotos.filter((p) => p.status === "completed").length;
+  const keywordsDone = keywords.filter((k) => !!k.yEssay).length;
 
   const sections = [
-    { icon: "📝", label: "에세이", href: "/essay", desc: "나란히 읽기", count: essays.length },
-    { icon: "✍️", label: "이어쓰기", href: "/relay", desc: "한 문장씩 번갈아", count: relays.length },
-    { icon: "🎲", label: "키워드", href: "/keyword", desc: "AI가 던지는 단어", count: keywords.length },
-    { icon: "📖", label: "독서모임", href: "/bookclub", desc: "둘의 대화", count: publishedBookclubs },
-    { icon: "📷", label: "사진+글", href: "/photostory", desc: "한 사람의 사진, 한 사람의 글", count: completedPhotos },
+    { icon: "📝", label: "에세이", href: "/essay", desc: "오늘의 글", count: essays.length },
+    { icon: "✍️", label: "이어쓰기", href: "/relay", desc: "한 문장씩 이어가기", count: relays.length },
+    { icon: "🎲", label: "키워드", href: "/keyword", desc: "AI가 던지는 단어", count: keywordsDone },
+    { icon: "📖", label: "독서모임", href: "/bookclub", desc: "한 권의 책", count: publishedBookclubs },
+    { icon: "📷", label: "사진+글", href: "/photostory", desc: "한 장면, 한 줄", count: completedPhotos },
   ];
 
   return (
@@ -192,15 +153,14 @@ export default async function HomePage() {
             lineHeight: 1.15,
           }}
         >
-          <span style={{ color: "var(--y-deep)" }}>영</span>
-          <span style={{ color: "var(--h-deep)" }}>희</span>
+          <span style={{ color: "var(--y-deep)" }}>영이</span>
           <span>네 작업실</span>
         </h1>
         <div
           className="serif"
           style={{ marginTop: 16, fontSize: 17, color: "var(--ink-2)" }}
         >
-          두 사람의 글과 사진이 만나는 곳
+          영이의 글과 사진이 머무는 곳
         </div>
         <div
           className="hand"
@@ -300,7 +260,7 @@ export default async function HomePage() {
         style={{ marginTop: 48, textAlign: "center", color: "var(--ink-4)" }}
         className="hand"
       >
-        한 페이지에 두 사람의 시간을 모아두는 곳
+        한 페이지에 영이의 시간을 모아두는 곳
       </div>
     </div>
   );

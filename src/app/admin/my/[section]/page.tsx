@@ -76,7 +76,7 @@ async function getItems(section: Section, uid: UserId): Promise<ListItem[]> {
       id: r.id,
       title: r.title,
       excerpt: r.firstSentenceText,
-      status: r.status === "completed" ? "published" : "published",
+      status: r.status === "completed" ? "published" : "draft",
       dateLabel: formatDate(r.updatedAt),
       comments: 0,
       href: `/relay/${r.id}`,
@@ -85,21 +85,16 @@ async function getItems(section: Section, uid: UserId): Promise<ListItem[]> {
   }
   if (section === "keyword") {
     const all = await listKeywords();
-    return all
-      .filter((k) => (uid === "Y" ? k.yEssay : k.hEssay))
-      .map((k) => {
-        const mine = uid === "Y" ? k.yEssay : k.hEssay;
-        return {
-          id: k.id,
-          title: `"${k.keyword}"`,
-          excerpt: mine?.title,
-          status: "published",
-          dateLabel: formatDate(k.suggestedAt),
-          comments: 0,
-          href: `/keyword/${k.id}`,
-          editHref: `/keyword/${k.id}/edit`,
-        };
-      });
+    return all.map((k) => ({
+      id: k.id,
+      title: `"${k.keyword}"`,
+      excerpt: k.yEssay?.title ?? "(아직 쓰지 않음)",
+      status: k.yEssay ? "published" : "draft",
+      dateLabel: formatDate(k.suggestedAt),
+      comments: 0,
+      href: `/keyword/${k.id}`,
+      editHref: `/keyword/${k.id}/edit`,
+    }));
   }
   if (section === "bookclub") {
     const all = await listBookclubs({ includeDrafts: true });

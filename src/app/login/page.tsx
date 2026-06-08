@@ -4,7 +4,7 @@ import { auth, isGoogleEnabled } from "@/auth";
 import { googleSignInAction } from "./actions";
 import LoginForm from "./LoginForm";
 
-export const metadata = { title: "로그인 — 영희네 작업실" };
+export const metadata = { title: "로그인 — 영이네 작업실" };
 
 type Props = {
   searchParams?: { from?: string };
@@ -26,15 +26,14 @@ export default async function LoginPage({ searchParams }: Props) {
           welcome back
         </div>
         <h1 className="serif" style={{ fontSize: 32, marginTop: 4 }}>
-          <span style={{ color: "var(--y-deep)" }}>영</span>
-          <span style={{ color: "var(--h-deep)" }}>희</span>
+          <span style={{ color: "var(--y-deep)" }}>영이</span>
           <span>의 자리로</span>
         </h1>
         <div
           className="serif"
           style={{ color: "var(--ink-2)", marginTop: 8 }}
         >
-          둘 만의 작업실입니다.
+          영이만의 작업실입니다.
         </div>
       </div>
 

@@ -6,7 +6,7 @@ import PhotostoryEditForm from "./PhotostoryEditForm";
 
 type Props = { params: { id: string } };
 
-export const metadata = { title: "사진+글 수정 — 영희네 작업실" };
+export const metadata = { title: "사진+글 수정 — 영이네 작업실" };
 export const dynamic = "force-dynamic";
 
 export default async function PhotostoryEditPage({ params }: Props) {

@@ -24,18 +24,12 @@ function formatDate(ts: number) {
 export default async function PhotostoryDetailPage({ params }: Props) {
   const [p, session] = await Promise.all([getPhotostory(params.id), auth()]);
   if (!p) notFound();
+  // Y가 찍은 사진만 노출.
+  if (p.photoAuthor !== "Y") notFound();
 
   const uid = session?.user?.id;
   const isYH = !!uid;
   const canWrite = uid === p.textAuthor && p.status === "waiting";
-
-  const photoAuthorCls = p.photoAuthor.toLowerCase();
-  const textAuthorCls = p.textAuthor.toLowerCase();
-  const photoName = p.photoAuthor === "Y" ? "Y" : "H";
-  const textName = p.textAuthor === "Y" ? "Y" : "H";
-  const photoDeep =
-    p.photoAuthor === "Y" ? "var(--y-deep)" : "var(--h-deep)";
-  const textDeep = p.textAuthor === "Y" ? "var(--y-deep)" : "var(--h-deep)";
 
   return (
     <div className="container narrow fade-in" style={{ maxWidth: 740 }}>
@@ -59,15 +53,7 @@ export default async function PhotostoryDetailPage({ params }: Props) {
         className="row-between"
         style={{ marginTop: 20, marginBottom: 28, flexWrap: "wrap", gap: 12 }}
       >
-        <div className="row gap-8">
-          <span className={`avatar-mini ${photoAuthorCls}`}>{p.photoAuthor}</span>
-          <div>
-            <div style={{ fontSize: 13, color: "var(--ink-3)" }}>📸 사진</div>
-            <div className="hand" style={{ fontSize: 17, color: photoDeep }}>
-              {p.photoAuthor} · {formatDate(p.photoUploadedAt)}
-            </div>
-          </div>
-        </div>
+        <div className="meta">📸 {formatDate(p.photoUploadedAt)}</div>
         {p.photoTitle && (
           <div
             className="hand"
@@ -84,26 +70,16 @@ export default async function PhotostoryDetailPage({ params }: Props) {
           style={{
             padding: "28px 28px 24px",
             background:
-              p.textAuthor === "Y"
-                ? "linear-gradient(180deg, var(--y-soft) 0%, var(--paper-2) 60%)"
-                : "linear-gradient(180deg, var(--h-soft) 0%, var(--paper-2) 60%)",
-            borderColor:
-              p.textAuthor === "Y" ? "var(--y-line)" : "var(--h-line)",
+              "linear-gradient(180deg, var(--y-soft) 0%, var(--paper-2) 60%)",
+            borderColor: "var(--y-line)",
           }}
         >
-          <div className="row gap-8" style={{ marginBottom: 16 }}>
-            <span className={`avatar-mini ${textAuthorCls}`}>{p.textAuthor}</span>
-            <div>
-              <div style={{ fontSize: 13, color: "var(--ink-3)" }}>✍️ 글</div>
-              <div className="hand" style={{ fontSize: 17, color: textDeep }}>
-                {p.textAuthor}
-                {p.textWrittenAt && ` · ${formatDate(p.textWrittenAt)}`}
-              </div>
-            </div>
+          <div className="meta" style={{ marginBottom: 16 }}>
+            ✍️ {p.textWrittenAt ? formatDate(p.textWrittenAt) : ""}
           </div>
           <SafeHtml html={p.text} className="prose" />
         </div>
-      ) : (
+      ) : isYH ? (
         <div
           className="card"
           style={{
@@ -114,11 +90,7 @@ export default async function PhotostoryDetailPage({ params }: Props) {
         >
           <div style={{ fontSize: 36, opacity: 0.5 }}>✍️</div>
           <div className="serif" style={{ fontSize: 18, marginTop: 12 }}>
-            <span style={{ color: textDeep, fontWeight: 600 }}>{p.textAuthor}</span>
-            의 글을 기다리고 있어요
-          </div>
-          <div className="meta" style={{ marginTop: 6 }}>
-            {p.photoAuthor}가(이) 올린 사진에 어울리는 글이 채워지면 공개됩니다.
+            아직 글을 적지 않았어요
           </div>
           {canWrite && (
             <div style={{ marginTop: 16 }}>
@@ -130,7 +102,7 @@ export default async function PhotostoryDetailPage({ params }: Props) {
             </div>
           )}
         </div>
-      )}
+      ) : null}
 
       {p.status === "completed" && (
         <Comments parentType="photostory" parentId={p.id} isYH={isYH} />

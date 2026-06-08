@@ -11,8 +11,7 @@ export default async function Header() {
     <header className="header">
       <div className="header-inner">
         <Link href="/" className="brand">
-          <span className="b-y">영</span>
-          <span className="b-h">희</span>
+          <span className="b-y">영이</span>
           <span style={{ color: "var(--ink)" }}>네 작업실</span>
         </Link>
 

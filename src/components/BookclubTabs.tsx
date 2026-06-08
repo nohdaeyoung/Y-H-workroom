@@ -5,13 +5,12 @@ import { useState } from "react";
 const TABS = [
   { id: "impressions", label: "소감", icon: "📝" },
   { id: "quotes", label: "나만의 문장", icon: "📖" },
-  { id: "record", label: "모임 기록", icon: "🎙" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
 
 export default function BookclubTabs({
-  record,
+  record: _record,
   impressions,
   quotes,
 }: {
@@ -55,9 +54,6 @@ export default function BookclubTabs({
         ))}
       </div>
 
-      <div style={{ display: active === "record" ? "block" : "none" }}>
-        {record}
-      </div>
       <div style={{ display: active === "impressions" ? "block" : "none" }}>
         {impressions}
       </div>

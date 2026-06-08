@@ -74,9 +74,10 @@ export async function createPhotostory(
 ): Promise<Photostory> {
   const db = getDbOrThrow();
   const now = Date.now();
+  // 솔로 모드: 사진을 올린 사람이 글도 씀.
   const data: Omit<Photostory, "id"> = {
     photoAuthor: input.photoAuthor,
-    textAuthor: input.photoAuthor === "Y" ? "H" : "Y",
+    textAuthor: input.photoAuthor,
     photoTitle: input.photoTitle.trim().slice(0, 100),
     photos: input.photos.slice(0, 5),
     photoUploadedAt: now,

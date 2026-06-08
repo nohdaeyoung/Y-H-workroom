@@ -16,7 +16,6 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://yh-workroom.vercel.a
 type DigestItem = {
   href: string;
   label: string;
-  by: UserId;
 };
 
 function authorized(req: NextRequest): boolean {
@@ -29,7 +28,7 @@ function authorized(req: NextRequest): boolean {
 async function collectYesterday(): Promise<DigestItem[]> {
   const since = Date.now() - ONE_DAY_MS;
   const [essays, relays, keywords, bookclubs, photostories] = await Promise.all([
-    listEssays({ limit: 50, status: "published" }),
+    listEssays({ limit: 50, status: "published", author: "Y" }),
     listRelays(),
     listKeywords(),
     listBookclubs({ includeDrafts: false }),
@@ -40,33 +39,31 @@ async function collectYesterday(): Promise<DigestItem[]> {
 
   for (const e of essays) {
     if (e.createdAt >= since) {
-      items.push({ href: `${APP_URL}/essay/${e.id}`, label: `📝 에세이 「${e.title}」`, by: e.author });
+      items.push({ href: `${APP_URL}/essay/${e.id}`, label: `📝 에세이 「${e.title}」` });
     }
   }
   for (const r of relays) {
     if (r.updatedAt >= since) {
-      items.push({ href: `${APP_URL}/relay/${r.id}`, label: `✍️ 이어쓰기 「${r.title}」`, by: r.lastAuthor });
+      items.push({ href: `${APP_URL}/relay/${r.id}`, label: `✍️ 이어쓰기 「${r.title}」` });
     }
   }
   for (const k of keywords) {
     if (k.yEssay && k.yEssay.writtenAt >= since) {
-      items.push({ href: `${APP_URL}/keyword/${k.id}`, label: `🎲 키워드 "${k.keyword}"`, by: "Y" });
-    }
-    if (k.hEssay && k.hEssay.writtenAt >= since) {
-      items.push({ href: `${APP_URL}/keyword/${k.id}`, label: `🎲 키워드 "${k.keyword}"`, by: "H" });
+      items.push({ href: `${APP_URL}/keyword/${k.id}`, label: `🎲 키워드 "${k.keyword}"` });
     }
   }
   for (const b of bookclubs) {
     if (b.publishedAt && b.publishedAt >= since) {
-      items.push({ href: `${APP_URL}/bookclub/${b.id}`, label: `📖 독서모임 「${b.bookTitle}」`, by: "Y" });
+      items.push({ href: `${APP_URL}/bookclub/${b.id}`, label: `📖 독서모임 「${b.bookTitle}」` });
     }
   }
   for (const p of photostories) {
+    if (p.photoAuthor !== "Y") continue;
     if (p.photoUploadedAt >= since) {
-      items.push({ href: `${APP_URL}/photostory/${p.id}`, label: `📷 사진 「${p.photoTitle}」`, by: p.photoAuthor });
+      items.push({ href: `${APP_URL}/photostory/${p.id}`, label: `📷 사진 「${p.photoTitle}」` });
     }
     if (p.textWrittenAt && p.textWrittenAt >= since) {
-      items.push({ href: `${APP_URL}/photostory/${p.id}`, label: `📷 글이 채워진 「${p.photoTitle}」`, by: p.textAuthor });
+      items.push({ href: `${APP_URL}/photostory/${p.id}`, label: `📷 글이 채워진 「${p.photoTitle}」` });
     }
   }
 
@@ -78,7 +75,6 @@ function renderDigest(items: DigestItem[], recipient: UserId): string {
     .map(
       (it) => `
     <tr><td style="padding:8px 0;border-bottom:1px solid #ece6d7;">
-      <span style="color:${it.by === "Y" ? "#85651e" : "#3a4878"};font-weight:600;font-size:12px;margin-right:8px;">${it.by === "Y" ? "대영" : "희서"}</span>
       <a href="${it.href}" style="color:#3a342c;text-decoration:none;">${it.label}</a>
     </td></tr>`
     )
@@ -88,7 +84,7 @@ function renderDigest(items: DigestItem[], recipient: UserId): string {
 <html lang="ko"><body style="margin:0;padding:24px;background:#f7f3eb;font-family:'Apple SD Gothic Neo','Pretendard',system-ui,sans-serif;color:#3a342c;">
   <table cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:560px;margin:0 auto;background:#fbfaf6;border-radius:14px;padding:32px;">
     <tr><td>
-      <div style="font-family:'Gaegu','Nanum Pen Script',cursive;font-size:18px;color:#85756a;margin-bottom:8px;">영희네 작업실 · 어제의 작업</div>
+      <div style="font-family:'Gaegu','Nanum Pen Script',cursive;font-size:18px;color:#85756a;margin-bottom:8px;">영이네 작업실 · 어제의 작업</div>
       <h1 style="font-family:'Noto Serif KR',serif;font-size:22px;font-weight:600;margin:0 0 20px 0;line-height:1.4;">
         ${name}, 어제는 이런 것들이 쌓였어요.
       </h1>
@@ -118,13 +114,13 @@ export async function GET(req: NextRequest) {
   }
 
   let sent = 0;
-  for (const user of ["Y", "H"] as const) {
-    const to = emailFor(user);
-    if (!to) continue;
-    const html = renderDigest(items, user);
+  // Y에게만 발송.
+  const to = emailFor("Y");
+  if (to) {
+    const html = renderDigest(items, "Y");
     const ok = await sendMail({
       to,
-      subject: `영희네 작업실 · 어제는 ${items.length}건 쌓였어요`,
+      subject: `영이네 작업실 · 어제는 ${items.length}건 쌓였어요`,
       html,
     });
     if (ok) sent++;

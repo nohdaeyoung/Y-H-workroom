@@ -92,6 +92,8 @@ export type CreateRelayInput = {
   title: string;
   firstSentence: string;
   author: UserId;
+  /** true면 첫 문장을 AI가 쓴 것으로 기록. */
+  firstSource?: "ai";
 };
 
 export async function createRelay(input: CreateRelayInput): Promise<Relay> {
@@ -114,13 +116,107 @@ export async function createRelay(input: CreateRelayInput): Promise<Relay> {
     updatedAt: now,
   };
   const ref = await db.collection(COLLECTION).add(relayData);
-  await ref.collection("sentences").add({
+  const sentenceData: {
+    order: number;
+    text: string;
+    author: UserId;
+    createdAt: number;
+    source?: "ai";
+  } = {
     order: 0,
     text,
     author: input.author,
     createdAt: now,
-  });
+  };
+  if (input.firstSource === "ai") sentenceData.source = "ai";
+  await ref.collection("sentences").add(sentenceData);
   return { id: ref.id, ...relayData };
+}
+
+/**
+ * AI 문장 한 줄을 마지막에 덧붙임. 사용자 차례 직후 호출.
+ * author 필드는 "H" 슬롯에 저장하지만 source: "ai"로 구분.
+ */
+export async function appendAiSentence(
+  relayId: string,
+  text: string
+): Promise<{ ok: boolean; error?: string }> {
+  const db = getDbOrThrow();
+  const trimmed = text.trim().slice(0, MAX_TEXT_LEN);
+  if (!trimmed) return { ok: false, error: "AI 문장이 비어 있어요" };
+
+  const ref = db.collection(COLLECTION).doc(relayId);
+  const doc = await ref.get();
+  if (!doc.exists) return { ok: false, error: "이어쓰기를 찾을 수 없어요" };
+  const relay = { id: doc.id, ...(doc.data() as Omit<Relay, "id">) } as Relay;
+  if (relay.status === "completed")
+    return { ok: false, error: "이미 완결된 글이에요" };
+
+  const now = Date.now();
+  const newOrder = relay.sentenceCount;
+  await ref.collection("sentences").add({
+    order: newOrder,
+    text: trimmed,
+    author: "H" as UserId,
+    source: "ai",
+    createdAt: now,
+  });
+  await ref.update({
+    sentenceCount: newOrder + 1,
+    lastSentenceText: trimmed,
+    lastAuthor: "H",
+    updatedAt: now,
+  });
+  return { ok: true };
+}
+
+/**
+ * 마지막 문장이 AI 문장일 때 텍스트만 교체 (재생성).
+ */
+export async function replaceLastAiSentence(
+  relayId: string,
+  newText: string
+): Promise<{ ok: boolean; error?: string }> {
+  const db = getDbOrThrow();
+  const trimmed = newText.trim().slice(0, MAX_TEXT_LEN);
+  if (!trimmed) return { ok: false, error: "새 문장이 비어 있어요" };
+
+  const ref = db.collection(COLLECTION).doc(relayId);
+  const snap = await ref
+    .collection("sentences")
+    .orderBy("order", "desc")
+    .limit(1)
+    .get();
+  if (snap.empty) return { ok: false, error: "문장이 없어요" };
+  const lastDoc = snap.docs[0];
+  const lastData = lastDoc.data() as RelaySentence;
+  if (lastData.source !== "ai")
+    return { ok: false, error: "마지막 문장이 AI 문장이 아니에요" };
+
+  await lastDoc.ref.update({ text: trimmed });
+  await ref.update({ lastSentenceText: trimmed, updatedAt: Date.now() });
+  return { ok: true };
+}
+
+/**
+ * AI 컨텍스트용: 최근 N개 문장 (오래된 → 최신).
+ */
+export async function getRecentSentences(
+  relayId: string,
+  limit = 20
+): Promise<RelaySentence[]> {
+  const db = getDbOrThrow();
+  const snap = await db
+    .collection(COLLECTION)
+    .doc(relayId)
+    .collection("sentences")
+    .orderBy("order", "desc")
+    .limit(limit)
+    .get();
+  const arr = snap.docs.map(
+    (d) => ({ id: d.id, ...d.data() } as RelaySentence)
+  );
+  return arr.sort((a, b) => a.order - b.order);
 }
 
 export type AppendSentenceInput = {
@@ -149,12 +245,7 @@ export async function appendSentence(
 
   if (relay.status === "completed")
     return { ok: false, error: "이미 완결된 글이에요", code: 400 };
-  if (relay.lastAuthor === input.author)
-    return {
-      ok: false,
-      error: "직전 작성자입니다. 상대를 기다려 주세요.",
-      code: 409,
-    };
+  // 솔로 모드: 같은 작성자가 계속 이어쓸 수 있음.
 
   const now = Date.now();
   const newOrder = relay.sentenceCount;
@@ -165,12 +256,13 @@ export async function appendSentence(
     createdAt: now,
   });
 
-  // 완결 동의 토글: 이 작성자의 동의 플래그 누적
+  // 솔로 모드: 작성자 본인이 완결 동의하면 즉시 완결.
   const yAgreed =
     input.agreeComplete && input.author === "Y" ? true : relay.yAgreed;
   const hAgreed =
     input.agreeComplete && input.author === "H" ? true : relay.hAgreed;
-  const status: Relay["status"] = yAgreed && hAgreed ? "completed" : "ongoing";
+  const status: Relay["status"] =
+    input.agreeComplete ? "completed" : relay.status;
 
   const patch: Partial<Relay> = {
     sentenceCount: newOrder + 1,
@@ -320,7 +412,8 @@ export async function toggleAgree(
 
   const yAgreed = author === "Y" ? agreed : relay.yAgreed;
   const hAgreed = author === "H" ? agreed : relay.hAgreed;
-  const status: Relay["status"] = yAgreed && hAgreed ? "completed" : "ongoing";
+  // 솔로 모드: 작성자 본인의 동의로 완결 토글.
+  const status: Relay["status"] = agreed ? "completed" : "ongoing";
   const patch: Partial<Relay> = {
     yAgreed,
     hAgreed,

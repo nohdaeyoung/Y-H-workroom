@@ -40,6 +40,8 @@ export type RelaySentence = {
   order: number;
   text: string;
   author: UserId;
+  /** "ai"면 AI가 자동 생성한 문장. 없으면 사람이 적은 것. */
+  source?: "ai";
   createdAt: number;
 };
 

@@ -26,7 +26,7 @@ export default function RelayEditForm({
   const [delMsg, setDelMsg] = useState<string | null>(null);
 
   async function requestDelete() {
-    if (!confirm("이어쓰기 전체 삭제를 요청할까요? 상대가 승인해야 실제로 삭제돼요.")) return;
+    if (!confirm("이어쓰기 전체 삭제를 요청할까요? /admin/requests에서 본인이 승인하면 삭제돼요.")) return;
     setDelSaving(true);
     setDelMsg(null);
     const fd = new FormData();
@@ -113,7 +113,7 @@ export default function RelayEditForm({
         <div className="row-between" style={{ flexWrap: "wrap", gap: 8 }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 500 }}>이어쓰기 삭제</div>
-            <div className="meta">상대 동의 후 사라져요. 되돌릴 수 없음.</div>
+            <div className="meta">/admin/requests에서 승인하면 삭제. 되돌릴 수 없음.</div>
           </div>
           <button
             type="button"

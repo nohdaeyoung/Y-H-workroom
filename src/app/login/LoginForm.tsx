@@ -8,33 +8,12 @@ const initial: LoginState = { error: "" };
 
 export default function LoginForm({ from }: { from?: string }) {
   const [state, action] = useFormState(loginAction, initial);
-  const [who, setWho] = useState<"Y" | "H" | "">("");
   const [pw, setPw] = useState("");
-
-  // who 선택 시 자동으로 login id 채움
-  const loginId = who === "Y" ? "daeyoung" : who === "H" ? "heeseo" : "";
 
   return (
     <form action={action}>
       <input type="hidden" name="from" value={from ?? "/"} />
-      <input type="hidden" name="id" value={loginId} />
-
-      <div className="row gap-12" style={{ marginBottom: 20 }}>
-        <button
-          type="button"
-          className={`btn flex-1 ${who === "Y" ? "btn-y" : ""}`}
-          onClick={() => setWho("Y")}
-        >
-          <span style={{ fontSize: 16 }}>🌾</span> &nbsp;Y
-        </button>
-        <button
-          type="button"
-          className={`btn flex-1 ${who === "H" ? "btn-h" : ""}`}
-          onClick={() => setWho("H")}
-        >
-          <span style={{ fontSize: 16 }}>🌙</span> &nbsp;H
-        </button>
-      </div>
+      <input type="hidden" name="id" value="daeyoung" />
 
       <label className="label">비밀번호</label>
       <input
@@ -62,7 +41,7 @@ export default function LoginForm({ from }: { from?: string }) {
         </div>
       )}
 
-      <SubmitBtn disabled={!who || !pw} />
+      <SubmitBtn disabled={!pw} />
     </form>
   );
 }

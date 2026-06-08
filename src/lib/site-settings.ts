@@ -6,8 +6,8 @@ const COLLECTION = "settings";
 const DOC = "site";
 
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
-  metaTitle: "영희네 작업실",
-  metaDescription: "두 사람의 글과 사진이 만나는 곳",
+  metaTitle: "영이네 작업실",
+  metaDescription: "영이의 글과 사진이 머무는 곳",
   ogImageUrl: "",
   headHtml: "",
   bodyStartHtml: "",

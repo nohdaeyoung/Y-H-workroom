@@ -6,7 +6,7 @@ import EssayEditForm from "./EssayEditForm";
 
 type Props = { params: { id: string } };
 
-export const metadata = { title: "에세이 수정 — 영희네 작업실" };
+export const metadata = { title: "에세이 수정 — 영이네 작업실" };
 export const dynamic = "force-dynamic";
 
 export default async function EssayEditPage({ params }: Props) {

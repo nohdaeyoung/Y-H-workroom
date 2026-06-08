@@ -6,21 +6,12 @@ import PhotoPlaceholder from "./PhotoPlaceholder";
 import Comments from "./Comments";
 import type { Photostory } from "@/types/domain";
 
-type Filter = "all" | "h2y" | "y2h";
-
-const FILTERS: { id: Filter; label: string }[] = [
-  { id: "all", label: "전체" },
-  { id: "h2y", label: "📸H → ✍️Y" },
-  { id: "y2h", label: "📸Y → ✍️H" },
-];
-
 function formatShort(ts: number) {
   const d = new Date(ts);
   return `${d.getMonth() + 1}.${String(d.getDate()).padStart(2, "0")}`;
 }
 
 function stripHtml(html: string): string {
-  // 줄바꿈 의미 있는 태그는 \n으로 변환 후 나머지 태그 제거.
   return html
     .replace(/<\/(p|div|h[1-6]|li|br\s*\/?)>/gi, "\n")
     .replace(/<br\s*\/?>/gi, "\n")
@@ -149,7 +140,6 @@ function FeedCard({ story, isYH }: { story: Photostory; isYH: boolean }) {
         marginBottom: 28,
       }}
     >
-      {/* 헤더 */}
       <div
         className="row gap-8"
         style={{
@@ -159,36 +149,12 @@ function FeedCard({ story, isYH }: { story: Photostory; isYH: boolean }) {
           flexWrap: "wrap",
         }}
       >
-        <span
-          className={`avatar-mini ${story.photoAuthor === "Y" ? "y" : "h"}`}
-          style={{ width: 28, height: 28, fontSize: 12 }}
-        >
-          {story.photoAuthor}
-        </span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="row gap-4" style={{ fontSize: 13 }}>
-            <span
-              style={{
-                color: story.photoAuthor === "Y" ? "var(--y-deep)" : "var(--h-deep)",
-                fontWeight: 600,
-              }}
-            >
-              📸 {story.photoAuthor}
-            </span>
-            <span style={{ color: "var(--ink-4)" }}>→</span>
-            <span
-              style={{
-                color: story.textAuthor === "Y" ? "var(--y-deep)" : "var(--h-deep)",
-                fontWeight: 600,
-                opacity: waiting ? 0.4 : 1,
-              }}
-            >
-              ✍️ {story.textAuthor}
-            </span>
-          </div>
-          <div className="meta" style={{ fontSize: 11, marginTop: 2 }}>
+          <div className="meta" style={{ fontSize: 12 }}>
             {formatShort(story.photoUploadedAt)}
-            {waiting && <span style={{ marginLeft: 8 }}>· ⏳ 글 대기중</span>}
+            {waiting && isYH && (
+              <span style={{ marginLeft: 8 }}>· ⏳ 글 작성 대기</span>
+            )}
           </div>
         </div>
         {isYH && (
@@ -202,14 +168,12 @@ function FeedCard({ story, isYH }: { story: Photostory; isYH: boolean }) {
         )}
       </div>
 
-      {/* 사진 */}
       {story.photos.length > 0 ? (
         <PhotoSlider photos={story.photos} title={story.photoTitle} />
       ) : (
         <PhotoPlaceholder hue={0} height={400} idx={0} />
       )}
 
-      {/* 본문 */}
       <div style={{ padding: "16px 20px 20px" }}>
         <h3
           className="serif"
@@ -232,16 +196,18 @@ function FeedCard({ story, isYH }: { story: Photostory; isYH: boolean }) {
             {plain}
           </div>
         ) : (
-          <div
-            className="hand"
-            style={{
-              marginTop: 10,
-              fontSize: 16,
-              color: "var(--ink-3)",
-            }}
-          >
-            {story.textAuthor}의 글을 기다리고 있어요
-          </div>
+          isYH && (
+            <div
+              className="hand"
+              style={{
+                marginTop: 10,
+                fontSize: 16,
+                color: "var(--ink-3)",
+              }}
+            >
+              아직 글을 적지 않았어요
+            </div>
+          )
         )}
       </div>
 
@@ -266,14 +232,10 @@ export default function PhotostoryListClient({
   canUpload: boolean;
   isYH: boolean;
 }) {
-  const [filter, setFilter] = useState<Filter>("all");
-
-  const filtered = items.filter((p) => {
-    if (filter === "all") return true;
-    if (filter === "h2y") return p.photoAuthor === "H" && p.textAuthor === "Y";
-    if (filter === "y2h") return p.photoAuthor === "Y" && p.textAuthor === "H";
-    return true;
-  });
+  // Y가 찍은 사진만 노출.
+  const ySource = items.filter((p) => p.photoAuthor === "Y");
+  // 비로그인은 완성된 것만, 로그인이면 대기중도 보임.
+  const visible = isYH ? ySource : ySource.filter((p) => p.status === "completed");
 
   return (
     <div className="container fade-in" style={{ maxWidth: 560 }}>
@@ -288,7 +250,7 @@ export default function PhotostoryListClient({
           className="serif"
           style={{ color: "var(--ink-2)", marginTop: 6, fontSize: 16 }}
         >
-          한 사람이 찍고, 한 사람이 쓰다
+          한 장면, 한 줄의 기록
         </div>
       </div>
 
@@ -296,32 +258,7 @@ export default function PhotostoryListClient({
         className="row-between"
         style={{ marginBottom: 20, flexWrap: "wrap", gap: 12 }}
       >
-        <div
-          className="row gap-4"
-          style={{
-            padding: 4,
-            background: "var(--paper-ink)",
-            borderRadius: "var(--r-md)",
-          }}
-        >
-          {FILTERS.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => setFilter(f.id)}
-              className="btn btn-sm"
-              style={{
-                background: filter === f.id ? "var(--paper-2)" : "transparent",
-                border: "none",
-                color: filter === f.id ? "var(--ink)" : "var(--ink-3)",
-                fontWeight: filter === f.id ? 500 : 400,
-                boxShadow: filter === f.id ? "var(--shadow-sm)" : "none",
-              }}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+        <span />
         {canUpload && (
           <Link href="/photostory/new" className="btn btn-primary">
             <span>📷</span> 사진 올리기
@@ -329,13 +266,13 @@ export default function PhotostoryListClient({
         )}
       </div>
 
-      {filtered.length === 0 ? (
+      {visible.length === 0 ? (
         <div className="card-flat center" style={{ padding: 60, color: "var(--ink-3)" }}>
           <span className="hand" style={{ fontSize: 20 }}>아직 비어 있어요</span>
         </div>
       ) : (
         <div>
-          {filtered.map((p) => (
+          {visible.map((p) => (
             <FeedCard key={p.id} story={p} isYH={isYH} />
           ))}
         </div>

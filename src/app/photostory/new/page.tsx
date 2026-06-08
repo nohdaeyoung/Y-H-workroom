@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import PhotostoryNewForm from "./PhotostoryNewForm";
 
-export const metadata = { title: "사진 올리기 — 영희네 작업실" };
+export const metadata = { title: "사진 올리기 — 영이네 작업실" };
 
 export default async function PhotostoryNewPage() {
   const session = await auth();

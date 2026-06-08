@@ -5,7 +5,7 @@ import { listKeywords } from "@/lib/keywords";
 import { listBookclubs } from "@/lib/bookclubs";
 import { listPhotostories } from "@/lib/photostories";
 
-export const metadata = { title: "여긴 빈 자리예요 — 영희네 작업실" };
+export const metadata = { title: "여긴 빈 자리예요 — 영이네 작업실" };
 export const dynamic = "force-dynamic";
 
 type Pick = {
@@ -24,7 +24,7 @@ function shortDate(ts: number) {
 
 async function gather(): Promise<Pick[]> {
   const [essays, relays, keywords, bookclubs, photos] = await Promise.all([
-    listEssays({ limit: 4, status: "published" }).catch(() => []),
+    listEssays({ limit: 4, status: "published", author: "Y" }).catch(() => []),
     listRelays().catch(() => []),
     listKeywords().catch(() => []),
     listBookclubs({ includeDrafts: false }).catch(() => []),
@@ -53,14 +53,14 @@ async function gather(): Promise<Pick[]> {
     });
   }
   for (const k of keywords.slice(0, 3)) {
-    if (k.status !== "both_done") continue;
+    if (!k.yEssay) continue;
     picks.push({
       kind: "keyword",
       icon: "🎲",
       title: `"${k.keyword}"`,
-      excerpt: k.yEssay?.title ?? k.hEssay?.title,
+      excerpt: k.yEssay.title,
       href: `/keyword/${k.id}`,
-      ts: k.suggestedAt,
+      ts: k.yEssay.writtenAt,
     });
   }
   for (const b of bookclubs.slice(0, 3)) {
@@ -73,7 +73,7 @@ async function gather(): Promise<Pick[]> {
       ts: b.publishedAt ?? b.createdAt,
     });
   }
-  for (const p of photos.slice(0, 3)) {
+  for (const p of photos.filter((p) => p.photoAuthor === "Y").slice(0, 3)) {
     picks.push({
       kind: "photostory",
       icon: "📷",

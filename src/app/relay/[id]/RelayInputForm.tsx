@@ -18,11 +18,10 @@ export default function RelayInputForm({
   author: "Y" | "H";
   blocked: boolean;
 }) {
+  void author;
   const [state, action] = useFormState(appendSentenceAction, initial);
   const [text, setText] = useState("");
-  const name = author === "Y" ? "대영" : "희서";
-  const cls = author === "Y" ? "y" : "h";
-  const lineVar = author === "Y" ? "var(--y-line)" : "var(--h-line)";
+  const [skipAi, setSkipAi] = useState(false);
 
   useEffect(() => {
     if (state.ok) setText("");
@@ -31,21 +30,19 @@ export default function RelayInputForm({
   return (
     <form
       className="card"
-      style={{ marginTop: 24, borderColor: lineVar }}
+      style={{ marginTop: 24, borderColor: "var(--y-line)" }}
       action={action}
     >
       <input type="hidden" name="relayId" value={relayId} />
+      {skipAi && <input type="hidden" name="skipAi" value="on" />}
       <div className="row gap-8" style={{ marginBottom: 12 }}>
-        <span className={`avatar-mini ${cls}`}>{author}</span>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 500 }}>
-            {name}로 이어쓰기
+          <div style={{ fontSize: 14, fontWeight: 500 }}>다음 문장 쓰기</div>
+          <div className="meta" style={{ fontSize: 12 }}>
+            {skipAi
+              ? "AI 응답 없이 이 문장만 저장"
+              : "저장 후 AI가 다음 한 문장을 이어 적어요"}
           </div>
-          {blocked && (
-            <div style={{ fontSize: 12, color: "var(--danger)" }}>
-              직전 문장의 작성자입니다. 상대를 기다려 주세요.
-            </div>
-          )}
         </div>
         <span className="meta" style={{ marginLeft: "auto" }}>
           {text.length}/200
@@ -53,7 +50,7 @@ export default function RelayInputForm({
       </div>
       <textarea
         className="textarea"
-        placeholder="한 문장을 이어 적어주세요…"
+        placeholder="한 문장을 적어주세요…"
         maxLength={200}
         disabled={blocked}
         rows={3}
@@ -62,13 +59,27 @@ export default function RelayInputForm({
         onChange={(e) => setText(e.target.value)}
       />
       <div className="row-between" style={{ marginTop: 12, flexWrap: "wrap", gap: 8 }}>
-        <label
-          className="meta"
-          style={{ display: "flex", gap: 6, alignItems: "center" }}
-        >
-          <input type="checkbox" name="agreeComplete" disabled={blocked} /> 이 문장으로 완결 동의
-        </label>
-        <SubmitBtn blocked={blocked || !text.trim()} />
+        <div className="row gap-12" style={{ flexWrap: "wrap" }}>
+          <label
+            className="meta"
+            style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 12 }}
+          >
+            <input type="checkbox" name="agreeComplete" disabled={blocked} /> 이 문장으로 완결
+          </label>
+          <label
+            className="meta"
+            style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 12 }}
+          >
+            <input
+              type="checkbox"
+              checked={skipAi}
+              onChange={(e) => setSkipAi(e.target.checked)}
+              disabled={blocked}
+            />{" "}
+            AI 응답 안 받기
+          </label>
+        </div>
+        <SubmitBtn blocked={blocked || !text.trim()} skipAi={skipAi} />
       </div>
       {state.error && (
         <div
@@ -82,7 +93,13 @@ export default function RelayInputForm({
   );
 }
 
-function SubmitBtn({ blocked }: { blocked: boolean }) {
+function SubmitBtn({
+  blocked,
+  skipAi,
+}: {
+  blocked: boolean;
+  skipAi: boolean;
+}) {
   const { pending } = useFormStatus();
   return (
     <button
@@ -90,7 +107,13 @@ function SubmitBtn({ blocked }: { blocked: boolean }) {
       className="btn btn-primary"
       disabled={pending || blocked}
     >
-      {pending ? "쓰는 중…" : "이어쓰기"}
+      {pending
+        ? skipAi
+          ? "저장 중…"
+          : "쓰는 중 (AI 응답 대기)…"
+        : skipAi
+        ? "이 문장만 저장"
+        : "이어쓰기 → AI"}
     </button>
   );
 }

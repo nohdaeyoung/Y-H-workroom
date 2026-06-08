@@ -1,7 +1,7 @@
 import { getAboutContent, sectionByKey } from "@/lib/about";
 import SafeHtml from "@/components/SafeHtml";
 
-export const metadata = { title: "소개 — 영희네 작업실" };
+export const metadata = { title: "소개 — 영이네 작업실" };
 // admin/about/actions에서 revalidatePath("/about") 호출하므로 5분 stale 허용 안전
 export const revalidate = 300;
 
@@ -12,7 +12,6 @@ export default async function AboutPage() {
   const header = s("header");
   const greeting = s("greeting");
   const yProfile = s("y_profile");
-  const hProfile = s("h_profile");
   const story = s("story");
   const contact = s("contact");
 
@@ -23,7 +22,7 @@ export default async function AboutPage() {
           about
         </div>
         <h1 className="serif" style={{ fontSize: 36, marginTop: 4 }}>
-          {header?.title ?? "영희네 작업실"}
+          {header?.title ?? "영이네 작업실"}
         </h1>
         {header?.body && (
           <SafeHtml
@@ -44,14 +43,7 @@ export default async function AboutPage() {
         </div>
       )}
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 16,
-          marginBottom: 40,
-        }}
-      >
+      <div style={{ marginBottom: 40 }}>
         <div
           className="card y"
           style={{
@@ -78,12 +70,12 @@ export default async function AboutPage() {
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               ) : (
-                "Y"
+                "영"
               )}
             </span>
             <div>
               <div className="serif" style={{ fontSize: 18, fontWeight: 600 }}>
-                Y
+                영이
               </div>
               <div
                 className="hand"
@@ -98,52 +90,6 @@ export default async function AboutPage() {
               html={yProfile.body}
               className="serif"
             />
-          )}
-        </div>
-
-        <div
-          className="card h"
-          style={{
-            background:
-              "linear-gradient(180deg, var(--h-soft) 0%, var(--paper-2) 80px)",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              marginBottom: 12,
-            }}
-          >
-            <span
-              className="avatar-mini h"
-              style={{ width: 40, height: 40, fontSize: 16, overflow: "hidden" }}
-            >
-              {hProfile?.imageUrl ? (
-                <img
-                  src={hProfile.imageUrl}
-                  alt=""
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              ) : (
-                "H"
-              )}
-            </span>
-            <div>
-              <div className="serif" style={{ fontSize: 18, fontWeight: 600 }}>
-                H
-              </div>
-              <div
-                className="hand"
-                style={{ fontSize: 17, color: "var(--h-deep)" }}
-              >
-                {hProfile?.subtitle?.trim() || "사진 찍는 사람"}
-              </div>
-            </div>
-          </div>
-          {hProfile?.body && (
-            <SafeHtml html={hProfile.body} className="serif" />
           )}
         </div>
       </div>

@@ -57,7 +57,7 @@ export default function KeywordWriteButton({
               &ldquo;{keyword}&rdquo;
             </h3>
             <div className="meta" style={{ marginBottom: 14 }}>
-              상대방은 당신이 완성할 때까지 기다립니다. (1000자 이내)
+              1000자 이내로 적어주세요.
             </div>
 
             <form action={action}>
@@ -120,7 +120,7 @@ function SubmitBtn({ disabled }: { disabled: boolean }) {
       className="btn btn-primary"
       disabled={pending || disabled}
     >
-      {pending ? "봉인 중…" : "완성 · 봉인"}
+      {pending ? "저장 중…" : "글 저장"}
     </button>
   );
 }

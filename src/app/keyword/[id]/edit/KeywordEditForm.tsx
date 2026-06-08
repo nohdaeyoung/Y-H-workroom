@@ -33,7 +33,7 @@ export default function KeywordEditForm({
   const [delKeywordMsg, setDelKeywordMsg] = useState<string | null>(null);
 
   async function requestDeleteKeyword() {
-    if (!confirm("키워드 전체 삭제를 요청할까요? 두 사람 글 모두 사라져요. 상대 승인 필요.")) return;
+    if (!confirm("키워드 전체 삭제를 요청할까요? /admin/requests에서 본인이 승인하면 삭제돼요.")) return;
     setDelKeyword(true);
     setDelKeywordMsg(null);
     const fd = new FormData();
@@ -128,7 +128,7 @@ export default function KeywordEditForm({
             <form
               action={deleteKeywordEssayAction}
               onSubmit={(e) => {
-                if (!confirm("정말 내 글을 삭제할까요? 상대방이 다시 봉인 상태로 돌아갑니다.")) e.preventDefault();
+                if (!confirm("정말 내 글을 삭제할까요? 되돌릴 수 없어요.")) e.preventDefault();
               }}
             >
               <input type="hidden" name="keywordId" value={keyword.id} />
@@ -189,7 +189,7 @@ export default function KeywordEditForm({
         <div className="row-between" style={{ flexWrap: "wrap", gap: 8 }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 500 }}>키워드 전체 삭제</div>
-            <div className="meta">두 사람 글 모두 사라져요. 상대 동의 필요.</div>
+            <div className="meta">/admin/requests에서 승인하면 삭제. 되돌릴 수 없음.</div>
           </div>
           <button
             type="button"

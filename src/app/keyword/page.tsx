@@ -4,231 +4,85 @@ import { listKeywords } from "@/lib/keywords";
 import NewKeywordButton from "@/components/NewKeywordButton";
 import type { Keyword } from "@/types/domain";
 
-export const metadata = { title: "키워드 — 영희네 작업실" };
+export const metadata = { title: "키워드 — 영이네 작업실" };
 export const dynamic = "force-dynamic";
 
 function formatDate(ts: number) {
   const d = new Date(ts);
-  return `${d.getMonth() + 1}/${d.getDate()}`;
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function CurrentKeywordCard({ k }: { k: Keyword }) {
+function KeywordCard({ k }: { k: Keyword }) {
+  const done = !!k.yEssay;
   return (
     <Link
       href={`/keyword/${k.id}`}
       className="card lift"
-      style={{
-        padding: "40px 28px",
-        background:
-          "linear-gradient(180deg, oklch(0.95 0.03 80) 0%, var(--paper-2) 100%)",
-        borderColor: "var(--y-line)",
-      }}
+      style={{ display: "block", padding: "20px 22px" }}
     >
-      <div style={{ textAlign: "center", marginBottom: 24 }}>
-        <div style={{ fontSize: 40, marginBottom: 8 }}>🎲</div>
-        <div className="hand" style={{ fontSize: 22, color: "var(--ink-3)" }}>
-          이번 주의 키워드
-        </div>
+      <div className="row gap-8" style={{ flexWrap: "wrap", marginBottom: 6 }}>
+        <span className="hand" style={{ fontSize: 16, color: "var(--ink-3)" }}>
+          {formatDate(k.suggestedAt)}
+        </span>
+        <span className={done ? "chip done" : "chip wait"}>
+          {done ? "쓴 글 있음" : "대기 중"}
+        </span>
+      </div>
+      <h3 className="serif" style={{ fontSize: 22, marginTop: 4 }}>
+        &ldquo;{k.keyword}&rdquo;
+      </h3>
+      {k.yEssay && (
         <div
           className="serif"
-          style={{
-            fontSize: 44,
-            fontWeight: 600,
-            letterSpacing: "-0.03em",
-            marginTop: 8,
-          }}
+          style={{ marginTop: 8, color: "var(--ink-2)", fontSize: 14 }}
         >
-          &ldquo;{k.keyword}&rdquo;
+          {k.yEssay.title}
         </div>
-        <div className="meta" style={{ marginTop: 8 }}>
-          {formatDate(k.suggestedAt)} · AI가 골라준 단어
-        </div>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        {(["Y", "H"] as const).map((u) => {
-          const essay = u === "Y" ? k.yEssay : k.hEssay;
-          const cls = u === "Y" ? "y" : "h";
-          const name = u === "Y" ? "Y" : "H";
-          return (
-            <div
-              key={u}
-              className="card-flat"
-              style={{
-                padding: 18,
-                background: essay
-                  ? u === "Y"
-                    ? "var(--y-soft)"
-                    : "var(--h-soft)"
-                  : "var(--paper)",
-                border: "1px solid",
-                borderColor: essay
-                  ? u === "Y"
-                    ? "var(--y-line)"
-                    : "var(--h-line)"
-                  : "var(--line)",
-                textAlign: "center",
-              }}
-            >
-              <span
-                className={`avatar-mini ${cls}`}
-                style={{
-                  width: 36,
-                  height: 36,
-                  fontSize: 14,
-                  margin: "0 auto",
-                  display: "flex",
-                }}
-              >
-                {u}
-              </span>
-              <div
-                className="serif"
-                style={{ fontSize: 14, fontWeight: 600, marginTop: 8 }}
-              >
-                {name}
-              </div>
-              {essay ? (
-                <>
-                  <div
-                    className="hand"
-                    style={{
-                      fontSize: 18,
-                      color: u === "Y" ? "var(--y-deep)" : "var(--h-deep)",
-                      marginTop: 4,
-                    }}
-                  >
-                    ✍️ 작성 완료
-                  </div>
-                  <div
-                    style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 4 }}
-                  >
-                    둘 다 완성 시 공개
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div
-                    className="hand"
-                    style={{
-                      fontSize: 18,
-                      color: "var(--ink-3)",
-                      marginTop: 4,
-                    }}
-                  >
-                    ⏳ 작성 대기
-                  </div>
-                  <div
-                    style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 4 }}
-                  >
-                    1,000자 이내
-                  </div>
-                </>
-              )}
-            </div>
-          );
-        })}
-      </div>
+      )}
     </Link>
   );
 }
 
 export default async function KeywordListPage() {
-  const [session, all] = await Promise.all([auth(), listKeywords()]);
+  const [items, session] = await Promise.all([listKeywords(), auth()]);
   const isYH = !!session?.user?.id;
-  const current = all[0];
-  const past = all.slice(1);
 
-  if (!current) {
-    return (
-      <div className="container narrow fade-in" style={{ maxWidth: 760 }}>
-        <div style={{ textAlign: "center", padding: "60px 0 24px" }}>
-          <div className="hand" style={{ fontSize: 22, color: "var(--ink-3)" }}>
-            AI keyword
-          </div>
-          <h1 className="page-title" style={{ fontSize: 30 }}>
-            이번 주의 키워드
-          </h1>
-          <div
-            className="serif"
-            style={{ color: "var(--ink-2)", marginTop: 6 }}
-          >
-            아직 키워드가 없어요.
-          </div>
-          {isYH && (
-            <div style={{ marginTop: 24 }}>
-              <NewKeywordButton
-                canRequest={true}
-                variant="primary"
-                label="🎲 첫 키워드 받기"
-              />
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
+  // 솔로 모드: 마지막 키워드에 Y가 글을 썼거나, 처음이면 새 키워드 요청 가능.
+  const lastKeyword = items[0];
+  const canRequest = !lastKeyword || !!lastKeyword.yEssay;
 
   return (
     <div className="container narrow fade-in" style={{ maxWidth: 760 }}>
-      <div style={{ textAlign: "center", marginBottom: 28 }}>
-        <div className="hand" style={{ fontSize: 22, color: "var(--ink-3)" }}>
-          AI keyword
-        </div>
-        <h1 className="page-title" style={{ fontSize: 30 }}>
-          이번 주의 키워드
-        </h1>
-        <div className="serif" style={{ color: "var(--ink-2)", marginTop: 6 }}>
-          AI가 던진 단어로, 각자의 글을 씁니다.
+      <div className="row-between" style={{ marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
+        <div>
+          <div className="hand" style={{ fontSize: 22, color: "var(--ink-3)" }}>
+            keyword
+          </div>
+          <h1 className="page-title">키워드</h1>
+          <div
+            className="serif"
+            style={{ color: "var(--ink-2)", marginTop: 4 }}
+          >
+            AI가 던지는 단어 한 개에 글 한 편
+          </div>
         </div>
         {isYH && (
-          <div style={{ marginTop: 14 }}>
-            <NewKeywordButton
-              canRequest={!!(current.yEssay && current.hEssay)}
-            />
-          </div>
+          <NewKeywordButton canRequest={canRequest} variant="primary" />
         )}
       </div>
 
-      <CurrentKeywordCard k={current} />
-
-      {past.length > 0 && (
-        <>
-          <h3 className="section-title" style={{ marginTop: 40, marginBottom: 12 }}>
-            지난 키워드
-          </h3>
-          <div className="col gap-12">
-            {past.map((k) => (
-              <Link
-                key={k.id}
-                href={`/keyword/${k.id}`}
-                className="card lift"
-                style={{ padding: "16px 20px" }}
-              >
-                <div className="row-between" style={{ flexWrap: "wrap", gap: 8 }}>
-                  <div className="row gap-12">
-                    <span style={{ fontSize: 24 }}>🎲</span>
-                    <div>
-                      <div className="serif" style={{ fontSize: 18, fontWeight: 600 }}>
-                        &ldquo;{k.keyword}&rdquo;
-                      </div>
-                      <div className="meta" style={{ marginTop: 2 }}>
-                        {formatDate(k.suggestedAt)}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="row gap-12">
-                    <span style={{ fontSize: 13 }}>Y {k.yEssay ? "✅" : "⏳"}</span>
-                    <span style={{ fontSize: 13 }}>H {k.hEssay ? "✅" : "⏳"}</span>
-                    {k.status === "both_done" && (
-                      <span className="meta">✓ 공개</span>
-                    )}
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </>
+      {items.length === 0 ? (
+        <div className="card-flat center" style={{ padding: 48, color: "var(--ink-3)" }}>
+          <span className="hand" style={{ fontSize: 18 }}>
+            아직 받은 키워드가 없어요
+          </span>
+        </div>
+      ) : (
+        <div className="col gap-16">
+          {items.map((k) => (
+            <KeywordCard key={k.id} k={k} />
+          ))}
+        </div>
       )}
     </div>
   );

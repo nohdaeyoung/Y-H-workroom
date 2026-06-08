@@ -9,7 +9,7 @@ type Props = { params: { id: string } };
 
 export async function generateMetadata({ params }: Props) {
   const essay = await getEssay(params.id);
-  return { title: essay ? `${essay.title} — 영희네 작업실` : "에세이" };
+  return { title: essay ? `${essay.title} — 영이네 작업실` : "에세이" };
 }
 
 function formatDate(ts: number) {
@@ -20,17 +20,16 @@ function formatDate(ts: number) {
 export default async function EssayDetailPage({ params }: Props) {
   const [essay, session] = await Promise.all([getEssay(params.id), auth()]);
   if (!essay) notFound();
+  // H 작성 글은 비공개
+  if (essay.author !== "Y") notFound();
 
-  const cls = essay.author === "Y" ? "y" : "h";
-  const name = essay.author === "Y" ? "Y" : "H";
-  const deepVar = cls === "y" ? "var(--y-deep)" : "var(--h-deep)";
   const isYH = !!session?.user?.id;
 
   return (
     <div className="container narrow fade-in" style={{ maxWidth: 680 }}>
       <div className="row-between" style={{ marginBottom: 24 }}>
         <Link href="/essay" className="btn btn-ghost btn-sm">
-          ← 나란히 보기로
+          ← 에세이로
         </Link>
         {session?.user?.id === essay.author && (
           <Link
@@ -43,17 +42,8 @@ export default async function EssayDetailPage({ params }: Props) {
       </div>
 
       <div style={{ textAlign: "center", padding: "20px 0 32px" }}>
-        <div
-          className="row gap-8"
-          style={{ justifyContent: "center", marginBottom: 16 }}
-        >
-          <span className={`avatar-mini ${cls}`}>{essay.author}</span>
-          <div style={{ fontSize: 14 }}>
-            <span style={{ fontWeight: 500, color: deepVar }}>{name}</span>
-            <span className="meta" style={{ marginLeft: 8 }}>
-              {formatDate(essay.createdAt)}
-            </span>
-          </div>
+        <div className="meta" style={{ marginBottom: 14 }}>
+          {formatDate(essay.createdAt)}
         </div>
         <h1
           className="serif"

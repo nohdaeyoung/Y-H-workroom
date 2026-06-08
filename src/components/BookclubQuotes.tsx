@@ -26,11 +26,8 @@ export default function BookclubQuotes({
   quotes: BookclubQuote[];
   viewer: "Y" | "H" | null;
 }) {
-  const [filter, setFilter] = useState<"all" | "Y" | "H">("all");
-
-  const visible = quotes.filter((q) =>
-    filter === "all" ? true : q.author === filter
-  );
+  // Y가 모은 문장만 노출.
+  const visible = quotes.filter((q) => q.author === "Y");
 
   return (
     <>
@@ -41,33 +38,6 @@ export default function BookclubQuotes({
         style={{ marginBottom: 14, marginTop: viewer ? 20 : 0, flexWrap: "wrap", gap: 8 }}
       >
         <h3 className="section-title">📖 인용 문장</h3>
-        <div
-          className="row gap-4"
-          style={{
-            padding: 4,
-            background: "var(--paper-ink)",
-            borderRadius: "var(--r-md)",
-          }}
-        >
-          {(["all", "Y", "H"] as const).map((f) => (
-            <button
-              key={f}
-              type="button"
-              onClick={() => setFilter(f)}
-              className="btn btn-sm"
-              style={{
-                background: filter === f ? "var(--paper-2)" : "transparent",
-                border: "none",
-                color: filter === f ? "var(--ink)" : "var(--ink-3)",
-                fontWeight: filter === f ? 500 : 400,
-                boxShadow: filter === f ? "var(--shadow-sm)" : "none",
-                padding: "4px 10px",
-              }}
-            >
-              {f === "all" ? "전체" : f}
-            </button>
-          ))}
-        </div>
       </div>
 
       <div className="col gap-12">

@@ -7,7 +7,7 @@ import { listKeywords } from "@/lib/keywords";
 import { listBookclubs } from "@/lib/bookclubs";
 import { listPhotostories } from "@/lib/photostories";
 
-export const metadata = { title: "어드민 — 영희네 작업실" };
+export const metadata = { title: "어드민 — 영이네 작업실" };
 export const dynamic = "force-dynamic";
 
 const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
@@ -25,30 +25,25 @@ export default async function AdminHomePage() {
   const cls = id === "Y" ? "y" : "h";
 
   const [essays, relays, keywords, bookclubs, photostories] = await Promise.all([
-    listEssays({ limit: 100 }),
+    listEssays({ limit: 100, author: "Y" }),
     listRelays(),
     listKeywords(),
     listBookclubs({ includeDrafts: true }),
     listPhotostories({ includeWaiting: true }),
   ]);
 
-  const myEssayCount = essays.filter((e) => e.author === id).length;
-
   const counts = {
-    essay: myEssayCount,
+    essay: essays.length,
     relay: relays.length,
-    keyword: keywords.filter((k) => (id === "Y" ? k.yEssay : k.hEssay)).length,
+    keyword: keywords.filter((k) => !!k.yEssay).length,
     bookclub: bookclubs.length,
-    photo: photostories.filter(
-      (p) => p.photoAuthor === id || p.textAuthor === id
-    ).length,
+    photo: photostories.filter((p) => p.photoAuthor === "Y").length,
   };
 
   const todos: { icon: string; text: string; link: string }[] = [];
   // 아직 안 쓴 키워드
   for (const k of keywords) {
-    const mine = id === "Y" ? k.yEssay : k.hEssay;
-    if (!mine) {
+    if (!k.yEssay) {
       todos.push({
         icon: "🎲",
         text: `키워드 "${k.keyword}" 아직 안 쓰셨어요`,
@@ -57,12 +52,12 @@ export default async function AdminHomePage() {
       break;
     }
   }
-  // 사진+글 대기
+  // 사진+글 대기 (Y가 사진 올리고 아직 글 안 적은 것)
   for (const p of photostories) {
-    if (p.status === "waiting" && p.textAuthor === id) {
+    if (p.status === "waiting" && p.photoAuthor === "Y") {
       todos.push({
         icon: "📷",
-        text: `${p.photoAuthor}가 사진을 올렸어요 — 글 써주세요`,
+        text: `「${p.photoTitle}」 글 작성이 비어있어요`,
         link: `/photostory/${p.id}`,
       });
       break;
